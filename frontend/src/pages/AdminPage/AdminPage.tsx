@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { Page } from '@/components/Page.tsx';
 import { apiGet } from '@/api/client';
 
-import s from './AdminPage.module.css';
+import s from './AnketaListPage.module.css';
 
 type FilterKey = 'pending' | 'approved' | 'rejected';
 
@@ -53,11 +53,13 @@ const STATUS_LABELS: Record<FilterKey, string> = {
   rejected: 'Rad etilgan',
 };
 
+const UZ_MONTHS = ['Yan', 'Fev', 'Mar', 'Apr', 'May', 'Iyun', 'Iyul', 'Avg', 'Sen', 'Okt', 'Noy', 'Dek'];
+
 function formatDate(iso: string): string {
-  try {
-    const d = new Date(iso);
-    return d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short' });
-  } catch { return iso; }
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return iso;
+  const base = `${UZ_MONTHS[d.getMonth()]} ${d.getDate()}`;
+  return d.getFullYear() === new Date().getFullYear() ? base : `${base}, ${d.getFullYear()}`;
 }
 
 export const AdminPage: FC = () => {
@@ -95,10 +97,10 @@ export const AdminPage: FC = () => {
     return (
       <Page>
         <div className={s.root}>
-          <div className={s.notAuthorized}>
-            <h1 className={s.notAuthorizedTitle}>Kirish yo‘q</h1>
-            <p className={s.notAuthorizedText}>
-              Bu bo‘lim faqat adminlar uchun. Sizning Telegram hisobingiz admin guruhiga kiritilmagan.
+          <div className={s.notAuth}>
+            <h1 className={s.notAuthTitle}>Kirish yo‘q</h1>
+            <p className={s.notAuthText}>
+              Bu bo‘lim faqat adminlar uchun. Telegram hisobingiz admin guruhiga kiritilmagan.
             </p>
           </div>
         </div>
@@ -109,69 +111,81 @@ export const AdminPage: FC = () => {
   return (
     <Page>
       <div className={s.root}>
-        <div className={s.content}>
-          <header className={s.pageHeader}>
-            <div>
-              <div className={s.eyebrow}>Admin</div>
-              <h1 className={s.pageTitle}>Anketalar</h1>
-            </div>
-            <button type="button" className={s.chatLink} onClick={() => navigate('/admin/chat')}>
-              Suhbatlar
-            </button>
-          </header>
+        <div className={s.fadeTop} aria-hidden />
+        <div className={s.fadeBottom} aria-hidden />
 
-          <div className={s.tabs}>
-            {(['pending', 'approved', 'rejected'] as FilterKey[]).map(key => (
+        <header className={s.header}>
+          <div>
+            <p className={s.eyebrow}>Admin panel</p>
+            <h1 className={s.title}>Anketalar</h1>
+          </div>
+          <button type="button" className={s.chatLink} onClick={() => navigate('/admin/chat')}>
+            Suhbatlar
+          </button>
+        </header>
+
+        <div className={s.tabs}>
+          {(['pending', 'approved', 'rejected'] as FilterKey[]).map(key => (
+            <button
+              key={key}
+              type="button"
+              className={filter === key ? `${s.tab} ${s.tabActive}` : s.tab}
+              onClick={() => setFilter(key)}
+            >
+              {STATUS_LABELS[key]}
+              <span className={s.tabCount}>{counts[key]}</span>
+            </button>
+          ))}
+        </div>
+
+        {error && <div className={s.error}>{error}</div>}
+
+        {loading ? (
+          <div className={s.list}>
+            {Array.from({ length: 6 }).map((_, i) => (
+              <div className={s.skel} key={i} aria-hidden>
+                <span className={s.skelMain}>
+                  <span className={s.skelLineWide} />
+                  <span className={s.skelLine} />
+                  <span className={s.skelLine} style={{ width: '42%' }} />
+                </span>
+                <span className={s.skelBadge} />
+              </div>
+            ))}
+          </div>
+        ) : items.length === 0 ? (
+          <p className={s.empty}>Anketalar yo‘q</p>
+        ) : (
+          <div className={s.list}>
+            {items.map(item => (
               <button
-                key={key}
+                key={item.telegram_id}
                 type="button"
-                className={s.tab}
-                data-active={filter === key}
-                onClick={() => setFilter(key)}
+                className={s.card}
+                onClick={() => navigate(`/admin/anketa/${item.telegram_id}`)}
               >
-                <span>{STATUS_LABELS[key]}</span>
-                <span className={s.tabCount}>{counts[key]}</span>
+                <span className={s.cardMain}>
+                  <span className={s.cardName}>{item.full_name}</span>
+                  <span className={s.cardLine}>
+                    {item.age} yosh · {REGION_LABELS[item.birthplace_region] ?? item.birthplace_region}
+                  </span>
+                  <span className={s.cardLine}>{item.current_residence_germany}</span>
+                  <span className={s.cardDate}>{formatDate(item.created_at)}</span>
+                </span>
+                <span className={s.cardRight}>
+                  <span className={`${s.badge} ${
+                    item.status === 'pending'  ? s.badgePending :
+                    item.status === 'approved' ? s.badgeApproved :
+                                                 s.badgeRejected
+                  }`}>
+                    {STATUS_LABELS[item.status]}
+                  </span>
+                  <span className={s.tariff}>{item.tariff}</span>
+                </span>
               </button>
             ))}
           </div>
-
-          {error && <div className={s.errorBanner}>{error}</div>}
-
-          {loading ? (
-            <div className={s.loading}>Yuklanmoqda…</div>
-          ) : items.length === 0 ? (
-            <div className={s.empty}>Anketalar yo‘q</div>
-          ) : (
-            <div className={s.list}>
-              {items.map(item => (
-                <button
-                  key={item.telegram_id}
-                  type="button"
-                  className={s.cardLink}
-                  onClick={() => navigate(`/admin/anketa/${item.telegram_id}`)}
-                >
-                  <div>
-                    <div className={s.cardName}>{item.full_name}</div>
-                    <div className={s.cardLine}>
-                      {item.age} yosh · {REGION_LABELS[item.birthplace_region] ?? item.birthplace_region}
-                    </div>
-                    <div className={s.cardLine}>{item.current_residence_germany}</div>
-                    <div className={s.cardMeta}>{formatDate(item.created_at)}</div>
-                  </div>
-                  <div className={s.cardRight}>
-                    <span className={[
-                      s.statusBadge,
-                      item.status === 'pending'  ? s.badgePending :
-                      item.status === 'approved' ? s.badgeApproved :
-                                                   s.badgeRejected,
-                    ].join(' ')}>{STATUS_LABELS[item.status]}</span>
-                    <span className={s.tariffBadge}>{item.tariff}</span>
-                  </div>
-                </button>
-              ))}
-            </div>
-          )}
-        </div>
+        )}
       </div>
     </Page>
   );

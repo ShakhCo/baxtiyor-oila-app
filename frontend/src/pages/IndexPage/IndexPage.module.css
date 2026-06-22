@@ -397,6 +397,30 @@
   background: linear-gradient(to top, var(--bg) 28%, rgba(13, 11, 8, 0));
 }
 
+/* secondary FAB (admins only) — anketa panel, stacked above the chat FAB */
+.anketaFab {
+  position: fixed;
+  right: calc(var(--tg-viewport-content-safe-area-inset-right, 0px) + 18px);
+  bottom: calc(var(--tg-viewport-safe-area-inset-bottom, 0px) + 88px);
+  z-index: 40;
+  width: 52px;
+  height: 52px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  appearance: none;
+  border-radius: 50%;
+  border: 1px solid rgba(200, 155, 84, 0.55);
+  background: var(--surface);
+  color: var(--gold);
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: background 0.15s ease, transform 0.12s ease;
+}
+
+.anketaFab:active { transform: scale(0.93); }
+.animateIntro .anketaFab { animation: fabIn 0.5s 2150ms backwards; }
+
 /* floating chat button (bottom-right) ------------------------- */
 .chatFab {
   position: fixed;

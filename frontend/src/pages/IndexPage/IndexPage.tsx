@@ -24,6 +24,15 @@ function ChatIcon() {
   );
 }
 
+function AnketaIcon() {
+  return (
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden>
+      <rect x="5" y="3" width="14" height="18" rx="2.5" stroke="currentColor" strokeWidth="1.6" />
+      <path d="M9 8 H15 M9 12 H15 M9 16 H13" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+    </svg>
+  );
+}
+
 function Arrow() {
   return (
     <svg width="17" height="17" viewBox="0 0 18 18" aria-hidden>
@@ -242,17 +251,20 @@ export const IndexPage: FC = () => {
         </RevealSection>
         */}
 
-        {isAdmin && (
-          <button type="button" className={s.adminPill} onClick={() => navigate('/admin')}>
-            <span className={s.adminDot} aria-hidden />
-            Anketalar paneli
-            <Arrow />
-          </button>
-        )}
-
         <footer className={s.footer}>
           <span className={s.footerText}>„Humo“ o‘zbek-olmon hamjamiyati</span>
         </footer>
+
+        {isAdmin && (
+          <button
+            type="button"
+            className={s.anketaFab}
+            onClick={() => navigate('/admin')}
+            aria-label="Anketalar paneli"
+          >
+            <AnketaIcon />
+          </button>
+        )}
 
         <button
           type="button"
