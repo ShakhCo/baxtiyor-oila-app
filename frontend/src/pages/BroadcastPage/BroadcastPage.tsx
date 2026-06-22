@@ -1,4 +1,4 @@
-import { useState, type FC } from 'react';
+import { useEffect, useRef, useState, type FC } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 import { Page } from '@/components/Page.tsx';
@@ -40,6 +40,14 @@ export const BroadcastPage: FC = () => {
   const queryClient = useQueryClient();
   const [text, setText] = useState('');
   const [confirm, setConfirm] = useState(false);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  // auto-focus the composer on entry, after the page transition settles so the
+  // keyboard reliably opens in the Telegram webview
+  useEffect(() => {
+    const t = setTimeout(() => textareaRef.current?.focus(), 250);
+    return () => clearTimeout(t);
+  }, []);
 
   const { data } = useQuery({
     queryKey: KEY,
@@ -73,6 +81,7 @@ export const BroadcastPage: FC = () => {
         </header>
 
         <textarea
+          ref={textareaRef}
           className={s.textarea}
           value={text}
           onChange={e => setText(e.target.value)}
