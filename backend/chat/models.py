@@ -110,6 +110,9 @@ class Message(models.Model):
     )
     text = models.TextField()
     created_at = models.DateTimeField(auto_now_add=True)
+    # True when this (admin/broadcast) message could not be delivered to the
+    # user's Telegram, so the admin sees it didn't go through.
+    delivery_failed = models.BooleanField(default=False)
 
     class Meta:
         ordering = ["created_at"]

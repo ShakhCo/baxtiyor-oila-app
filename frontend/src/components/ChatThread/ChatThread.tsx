@@ -15,6 +15,7 @@ export type ChatMessage = {
   sender: 'user' | 'admin';
   text: string;
   created_at: string;
+  delivery_failed?: boolean;
 };
 
 type Props = {
@@ -138,14 +139,20 @@ export const ChatThread: FC<Props> = ({ basePath, mySide, emptyHint, onMeta, bot
         {loaded && messages.length === 0 && emptyHint && (
           <p className={s.empty}>{emptyHint}</p>
         )}
-        {messages.map(m => (
-          <div key={m.id} className={`${s.row} ${m.sender === mySide ? s.mine : s.theirs}`}>
-            <div className={s.bubble}>
-              <span className={s.text}>{m.text}</span>
-              <span className={s.time}>{timeLabel(m.created_at)}</span>
+        {messages.map(m => {
+          const failed = m.delivery_failed && m.sender === mySide;
+          return (
+            <div key={m.id} className={`${s.row} ${m.sender === mySide ? s.mine : s.theirs}`}>
+              <div className={s.bubble}>
+                <span className={s.text}>{m.text}</span>
+                <span className={s.metaRow}>
+                  {failed && <span className={s.failed}>⚠ Yetkazilmadi</span>}
+                  <span className={s.time}>{timeLabel(m.created_at)}</span>
+                </span>
+              </div>
             </div>
-          </div>
-        ))}
+          );
+        })}
         <div ref={bottomRef} />
       </div>
 

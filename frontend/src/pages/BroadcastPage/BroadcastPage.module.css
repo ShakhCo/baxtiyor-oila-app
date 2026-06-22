@@ -7,6 +7,7 @@
   color: #ece2c8;
   font-family: 'Manrope', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
   -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
   padding: calc(var(--tg-viewport-safe-area-inset-top, 0px) + var(--tg-viewport-content-safe-area-inset-top, 0px) + 18px) 18px
     calc(var(--tg-viewport-safe-area-inset-bottom, 0px) + 28px);
 }
@@ -134,8 +135,9 @@
 
 .stats {
   display: flex;
+  flex-wrap: wrap;
   align-items: baseline;
-  gap: 12px;
+  gap: 6px 12px;
   font-size: 14px;
   font-weight: 600;
 }
@@ -211,7 +213,7 @@
 .dotFail { background: #d98a7f; }
 
 .recipientName {
-  flex: 1;
+  flex: 1 1 auto;
   min-width: 0;
   font-size: 14.5px;
   color: #ece2c8;
@@ -221,9 +223,14 @@
 }
 
 .recipientUser {
-  flex: none;
+  flex: 0 1 auto;
+  min-width: 0;
+  max-width: 55%;
   font-size: 13px;
   color: #c89b54;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .detailSkel {

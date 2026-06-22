@@ -15,6 +15,7 @@ def serialize_message(m: Message) -> dict:
         "sender": m.sender,
         "text": m.text,
         "created_at": m.created_at.isoformat(),
+        "delivery_failed": m.delivery_failed,
     }
 
 

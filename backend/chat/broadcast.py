@@ -36,9 +36,11 @@ def _display_name(first: str, last: str, username: str, tid: int) -> str:
     return f"{first or ''} {last or ''}".strip() or username or str(tid)
 
 
-def _record_chat_history(text: str, when, tids: list[int]) -> None:
+def _record_chat_history(text: str, when, results: dict[int, bool]) -> None:
     """Store the broadcast as an admin message in every recipient's support
-    thread, so it shows up in their chat history at the time it was sent."""
+    thread, so it shows up in their chat history at the time it was sent.
+    Messages whose Telegram delivery failed are flagged so the admin sees it."""
+    tids = list(results)
     existing = set(Conversation.objects.filter(user_id__in=tids).values_list("user_id", flat=True))
     new_convs = [Conversation(user_id=t, updated_at=when) for t in tids if t not in existing]
     if new_convs:
@@ -46,7 +48,13 @@ def _record_chat_history(text: str, when, tids: list[int]) -> None:
 
     conv_map = dict(Conversation.objects.filter(user_id__in=tids).values_list("user_id", "id"))
     msgs = [
-        Message(conversation_id=conv_map[t], sender=Message.ADMIN, author=None, text=text)
+        Message(
+            conversation_id=conv_map[t],
+            sender=Message.ADMIN,
+            author=None,
+            text=text,
+            delivery_failed=not results[t],
+        )
         for t in tids if t in conv_map
     ]
     created = Message.objects.bulk_create(msgs, batch_size=500)
@@ -94,6 +102,7 @@ def _run(broadcast_id: int) -> None:
 
     sent = failed = 0
     pending: list[BroadcastRecipient] = []
+    results: dict[int, bool] = {}
 
     def flush():
         if pending:
@@ -105,6 +114,7 @@ def _run(broadcast_id: int) -> None:
             for i, u in enumerate(recipients, 1):
                 tid = u["telegram_id"]
                 ok = bool(url) and _send_one(client, url, tid, bc.text)
+                results[tid] = ok
                 if ok:
                     sent += 1
                 else:
@@ -122,7 +132,7 @@ def _run(broadcast_id: int) -> None:
                 if url:
                     time.sleep(SEND_DELAY)
         # also record the broadcast in every recipient's in-app chat history
-        _record_chat_history(bc.text, bc.created_at, [u["telegram_id"] for u in recipients])
+        _record_chat_history(bc.text, bc.created_at, results)
     except Exception:  # noqa: BLE001 — never let the worker die silently
         logger.exception("broadcast %s crashed", broadcast_id)
     finally:
