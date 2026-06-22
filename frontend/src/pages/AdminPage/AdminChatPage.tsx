@@ -20,12 +20,21 @@ type Item = {
   username: string;
   last_message: string;
   last_sender: 'user' | 'admin' | null;
+  last_failed?: boolean;
   updated_at: string;
   unread: number;
   labels: string[];
 };
 type ChatsPage = { items: Item[]; has_more: boolean; total: number };
 type InfiniteChats = { pages: ChatsPage[]; pageParams: number[] };
+
+type Broadcast = {
+  id: number;
+  status: 'pending' | 'running' | 'done';
+  total: number;
+  sent: number;
+  failed: number;
+};
 
 // UI state remembered across navigation (the data itself is cached by React Query).
 let cachedScrollY = 0;
@@ -71,6 +80,15 @@ function ArrowUpIcon() {
     <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden>
       <path d="M6 15 L12 9 L18 15" stroke="currentColor" strokeWidth="2.2"
         strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
+function ErrorIcon() {
+  return (
+    <svg width="14" height="14" viewBox="0 0 24 24" aria-hidden>
+      <circle cx="12" cy="12" r="10" fill="#c0392b" />
+      <path d="M12 7 v6 M12 16.4 v.01" stroke="#fff" strokeWidth="2.2" strokeLinecap="round" />
     </svg>
   );
 }
@@ -136,6 +154,25 @@ export const AdminChatPage: FC = () => {
   const items = chats.data?.pages.flatMap(p => p.items) ?? [];
   const total = chats.data?.pages[0]?.total ?? 0;
   const loaded = !!chats.data;
+
+  // live broadcast: while one is running, show a progress card and refresh the
+  // inbox a bit faster so delivered messages surface in (near) real time
+  const bcQuery = useQuery({
+    queryKey: ['broadcasts'],
+    queryFn: () => apiGet<{ items: Broadcast[] }>('/admin/broadcasts'),
+    refetchInterval: (q) =>
+      q.state.data?.items.some(b => b.status !== 'done') ? 2000 : false,
+  });
+  const activeBroadcast = bcQuery.data?.items.find(b => b.status !== 'done') ?? null;
+
+  // while a broadcast runs, poll the inbox faster so it reflects deliveries live
+  useEffect(() => {
+    if (!activeBroadcast) return;
+    const t = setInterval(() => {
+      queryClient.invalidateQueries({ queryKey: [CHATS_KEY] });
+    }, 4000);
+    return () => clearInterval(t);
+  }, [activeBroadcast, queryClient]);
 
   // load the next page when the sentinel scrolls into view
   useEffect(() => {
@@ -281,6 +318,28 @@ export const AdminChatPage: FC = () => {
           </button>
         </div>
 
+        {activeBroadcast && (
+          <button
+            type="button"
+            className={s.bcCard}
+            onClick={() => navigate(`/admin/broadcast/${activeBroadcast.id}`)}
+          >
+            <span className={s.bcTop}>
+              <span className={s.bcLabel}>Ommaviy xabar yuborilmoqda…</span>
+              <span className={s.bcCount}>
+                {(activeBroadcast.sent + activeBroadcast.failed).toLocaleString('uz-UZ')}
+                /{activeBroadcast.total.toLocaleString('uz-UZ')}
+              </span>
+            </span>
+            <span className={s.bcBar}>
+              <span
+                className={s.bcBarFill}
+                style={{ width: `${activeBroadcast.total ? Math.round((activeBroadcast.sent + activeBroadcast.failed) / activeBroadcast.total * 100) : 0}%` }}
+              />
+            </span>
+          </button>
+        )}
+
         <div className={s.list}>
           {!loaded ? (
             Array.from({ length: 9 }).map((_, i) => (
@@ -325,7 +384,10 @@ export const AdminChatPage: FC = () => {
                     </span>
                     <span className={s.previewLine}>
                       <span className={s.preview}>
-                        {it.last_sender === 'admin' ? 'Siz: ' : ''}{it.last_message || '—'}
+                        {it.last_failed && <span className={s.failIcon}><ErrorIcon /></span>}
+                        <span className={s.previewText}>
+                          {it.last_sender === 'admin' ? 'Siz: ' : ''}{it.last_message || '—'}
+                        </span>
                       </span>
                       {it.unread > 0 && <span className={s.badge}>{it.unread}</span>}
                     </span>

@@ -36,11 +36,11 @@ def _display_name(first: str, last: str, username: str, tid: int) -> str:
     return f"{first or ''} {last or ''}".strip() or username or str(tid)
 
 
-def _record_chat_history(text: str, when, results: dict[int, bool]) -> None:
-    """Store the broadcast as an admin message in every recipient's support
-    thread, so it shows up in their chat history at the time it was sent.
-    Messages whose Telegram delivery failed are flagged so the admin sees it."""
-    tids = list(results)
+def _flush_chat_history(text: str, when, batch: dict[int, bool]) -> None:
+    """Store a batch of broadcast deliveries as admin messages in each recipient's
+    support thread, so they show up in chat history (flagged if delivery failed).
+    Called incrementally during the run so the inbox updates in near real time."""
+    tids = list(batch)
     existing = set(Conversation.objects.filter(user_id__in=tids).values_list("user_id", flat=True))
     new_convs = [Conversation(user_id=t, updated_at=when) for t in tids if t not in existing]
     if new_convs:
@@ -53,7 +53,7 @@ def _record_chat_history(text: str, when, results: dict[int, bool]) -> None:
             sender=Message.ADMIN,
             author=None,
             text=text,
-            delivery_failed=not results[t],
+            delivery_failed=not batch[t],
         )
         for t in tids if t in conv_map
     ]
@@ -102,19 +102,22 @@ def _run(broadcast_id: int) -> None:
 
     sent = failed = 0
     pending: list[BroadcastRecipient] = []
-    results: dict[int, bool] = {}
+    hist_batch: dict[int, bool] = {}
 
     def flush():
         if pending:
             BroadcastRecipient.objects.bulk_create(pending)
             pending.clear()
+        if hist_batch:
+            # record this batch into chat history (inbox sees it within seconds)
+            _flush_chat_history(bc.text, bc.created_at, hist_batch)
+            hist_batch.clear()
 
     try:
         with httpx.Client(timeout=15.0) as client:
             for i, u in enumerate(recipients, 1):
                 tid = u["telegram_id"]
                 ok = bool(url) and _send_one(client, url, tid, bc.text)
-                results[tid] = ok
                 if ok:
                     sent += 1
                 else:
@@ -126,13 +129,12 @@ def _run(broadcast_id: int) -> None:
                     username=u["username"] or "",
                     status=BroadcastRecipient.SENT if ok else BroadcastRecipient.FAILED,
                 ))
+                hist_batch[tid] = ok
                 if i % PROGRESS_EVERY == 0:
                     flush()
                     Broadcast.objects.filter(id=broadcast_id).update(sent=sent, failed=failed)
                 if url:
                     time.sleep(SEND_DELAY)
-        # also record the broadcast in every recipient's in-app chat history
-        _record_chat_history(bc.text, bc.created_at, results)
     except Exception:  # noqa: BLE001 — never let the worker die silently
         logger.exception("broadcast %s crashed", broadcast_id)
     finally:

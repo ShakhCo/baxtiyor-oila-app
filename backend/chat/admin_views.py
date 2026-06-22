@@ -90,6 +90,7 @@ def list_conversations(request):
             "username":     u.username,
             "last_message": last.text if last else "",
             "last_sender":  last.sender if last else None,
+            "last_failed":  bool(last and last.sender == Message.ADMIN and last.delivery_failed),
             "updated_at":   when.isoformat() if when else None,
             "unread":       unread,
             "labels":       conv.labels if conv else [],
