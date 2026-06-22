@@ -34,13 +34,19 @@ function initials(name: string): string {
   return name.trim().split(/\s+/).slice(0, 2).map(w => w[0]).join('').toUpperCase() || '?';
 }
 
+// Uzbek short month names (Intl's uz-UZ data is unreliable in TG webviews).
+const UZ_MONTHS = ['Yan', 'Fev', 'Mar', 'Apr', 'May', 'Iyun', 'Iyul', 'Avg', 'Sen', 'Okt', 'Noy', 'Dek'];
+
 function timeLabel(iso: string): string {
   const d = new Date(iso);
   const today = new Date();
   const sameDay = d.toDateString() === today.toDateString();
-  return sameDay
-    ? d.toLocaleTimeString('uz-UZ', { hour: '2-digit', minute: '2-digit' })
-    : d.toLocaleDateString('uz-UZ', { day: '2-digit', month: '2-digit' });
+  if (sameDay) {
+    return d.toLocaleTimeString('uz-UZ', { hour: '2-digit', minute: '2-digit' });
+  }
+  // e.g. "Iyun 21"; include the year only when it isn't the current one
+  const base = `${UZ_MONTHS[d.getMonth()]} ${d.getDate()}`;
+  return d.getFullYear() === today.getFullYear() ? base : `${base}, ${d.getFullYear()}`;
 }
 
 function SearchIcon() {
