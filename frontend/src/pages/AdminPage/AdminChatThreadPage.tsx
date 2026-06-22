@@ -3,14 +3,25 @@ import { useParams } from 'react-router-dom';
 import { useQueryClient } from '@tanstack/react-query';
 
 import { Page } from '@/components/Page.tsx';
-import { ChatThread } from '@/components/ChatThread/ChatThread';
+import { ChatThread, type ChatMessage } from '@/components/ChatThread/ChatThread';
 import { LabelSheet } from '@/components/LabelSheet/LabelSheet';
 import { apiGet } from '@/api/client';
 
 import s from '@/pages/ChatPage/ChatPage.module.css';
 
 type Meta = { user?: { name: string; username: string }; labels?: string[] };
-type InfiniteChats = { pages: { items: { telegram_id: number; labels: string[] }[] }[] };
+type ListItem = {
+  telegram_id: number;
+  name: string;
+  username: string;
+  last_message: string;
+  last_sender: 'user' | 'admin' | null;
+  last_failed?: boolean;
+  updated_at: string;
+  unread: number;
+  labels: string[];
+};
+type InfiniteChats = { pages: { items: ListItem[] }[] };
 
 function TagIcon() {
   return (
@@ -54,6 +65,32 @@ export const AdminChatThreadPage: FC = () => {
         : old);
   }
 
+  // after the admin sends, update the inbox preview + move the chat to the top,
+  // so going back shows the new last message immediately (no wait for refetch)
+  function patchListPreview(msg: ChatMessage) {
+    const id = Number(telegramId);
+    queryClient.setQueriesData<InfiniteChats>({ queryKey: ['admin-chats'] }, (old) => {
+      if (!old?.pages?.length) return old;
+      let found: ListItem | undefined;
+      const pages = old.pages.map(p => ({
+        ...p,
+        items: p.items.filter(it => {
+          if (it.telegram_id === id) { found = it; return false; }
+          return true;
+        }),
+      }));
+      const updated: ListItem = {
+        ...(found ?? { telegram_id: id, name, username, labels, unread: 0 }),
+        last_message: msg.text,
+        last_sender: 'admin',
+        last_failed: false,
+        updated_at: msg.created_at,
+      };
+      pages[0] = { ...pages[0], items: [updated, ...pages[0].items] };
+      return { ...old, pages };
+    });
+  }
+
   return (
     <Page back>
       <div className={s.root}>
@@ -90,6 +127,7 @@ export const AdminChatThreadPage: FC = () => {
           basePath={`/admin/chats/${telegramId}`}
           mySide="admin"
           emptyHint="Hozircha xabarlar yo‘q."
+          onSent={patchListPreview}
           onMeta={(raw) => {
             const m = raw as Meta;
             if (m.user) { setName(m.user.name); setUsername(m.user.username); setMetaLoaded(true); }

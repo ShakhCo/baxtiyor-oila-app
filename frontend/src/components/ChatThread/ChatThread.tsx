@@ -26,6 +26,8 @@ type Props = {
   emptyHint?: string;
   /** Called with the raw GET payload on each poll (e.g. to read `user` meta). */
   onMeta?: (raw: unknown) => void;
+  /** Called right after a message is sent, so the parent can update the inbox. */
+  onSent?: (msg: ChatMessage) => void;
   /** Add device safe-area padding under the composer. Off when a bottom nav sits below it. */
   bottomSafe?: boolean;
 };
@@ -53,7 +55,7 @@ function ArrowUp() {
   );
 }
 
-export const ChatThread: FC<Props> = ({ basePath, mySide, emptyHint, onMeta, bottomSafe = true }) => {
+export const ChatThread: FC<Props> = ({ basePath, mySide, emptyHint, onMeta, onSent, bottomSafe = true }) => {
   const queryClient = useQueryClient();
   const queryKey = ['chat', basePath] as const;
   const [text, setText] = useState('');
@@ -63,6 +65,8 @@ export const ChatThread: FC<Props> = ({ basePath, mySide, emptyHint, onMeta, bot
   const inputBarRef = useRef<HTMLDivElement>(null);
   const onMetaRef = useRef(onMeta);
   onMetaRef.current = onMeta;
+  const onSentRef = useRef(onSent);
+  onSentRef.current = onSent;
 
   // Cached thread fetch. The full list comes back each poll; within the stale
   // window (30s) returning to a thread shows the cached messages with no refetch.
@@ -114,6 +118,7 @@ export const ChatThread: FC<Props> = ({ basePath, mySide, emptyHint, onMeta, bot
         if (list.some(m => m.id === msg.id)) return prev;
         return { ...(prev ?? {}), messages: [...list, msg] };
       });
+      onSentRef.current?.(msg); // let the parent refresh the inbox preview
       setText('');
       inputRef.current?.focus(); // keep typing — don't drop the keyboard
       requestAnimationFrame(() => bottomRef.current?.scrollIntoView({ behavior: 'smooth' }));
