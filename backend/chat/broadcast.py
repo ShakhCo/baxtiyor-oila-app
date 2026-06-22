@@ -9,7 +9,7 @@ from django.db.models import Q
 from django.utils import timezone
 
 from accounts.models import User
-from chat.models import Broadcast, BroadcastRecipient
+from chat.models import Broadcast, BroadcastRecipient, Conversation, Message
 
 logger = logging.getLogger(__name__)
 
@@ -34,6 +34,26 @@ def recipient_queryset():
 
 def _display_name(first: str, last: str, username: str, tid: int) -> str:
     return f"{first or ''} {last or ''}".strip() or username or str(tid)
+
+
+def _record_chat_history(text: str, when, tids: list[int]) -> None:
+    """Store the broadcast as an admin message in every recipient's support
+    thread, so it shows up in their chat history at the time it was sent."""
+    existing = set(Conversation.objects.filter(user_id__in=tids).values_list("user_id", flat=True))
+    new_convs = [Conversation(user_id=t, updated_at=when) for t in tids if t not in existing]
+    if new_convs:
+        Conversation.objects.bulk_create(new_convs, ignore_conflicts=True, batch_size=500)
+
+    conv_map = dict(Conversation.objects.filter(user_id__in=tids).values_list("user_id", "id"))
+    msgs = [
+        Message(conversation_id=conv_map[t], sender=Message.ADMIN, author=None, text=text)
+        for t in tids if t in conv_map
+    ]
+    created = Message.objects.bulk_create(msgs, batch_size=500)
+    if created:
+        # created_at is auto_now_add; a direct UPDATE stamps the real send time
+        Message.objects.filter(id__in=[m.id for m in created]).update(created_at=when)
+    Conversation.objects.filter(user_id__in=tids).update(updated_at=when)
 
 
 def _send_one(client: httpx.Client, url: str, chat_id: int, text: str) -> bool:
@@ -101,6 +121,8 @@ def _run(broadcast_id: int) -> None:
                     Broadcast.objects.filter(id=broadcast_id).update(sent=sent, failed=failed)
                 if url:
                     time.sleep(SEND_DELAY)
+        # also record the broadcast in every recipient's in-app chat history
+        _record_chat_history(bc.text, bc.created_at, [u["telegram_id"] for u in recipients])
     except Exception:  # noqa: BLE001 — never let the worker die silently
         logger.exception("broadcast %s crashed", broadcast_id)
     finally:
