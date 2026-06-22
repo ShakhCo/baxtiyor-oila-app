@@ -8,7 +8,7 @@ from rest_framework.response import Response
 
 from accounts.models import User
 from accounts.permissions import IsAdmin
-from chat.broadcast import start_broadcast
+from chat.broadcast import recipient_queryset, start_broadcast
 from chat.models import Broadcast, Conversation, Label, Message
 from chat.views import MAX_LEN, _messages_after, serialize_message
 
@@ -94,7 +94,7 @@ def broadcasts(request):
         return Response(serialize_broadcast(bc), status=http_status.HTTP_201_CREATED)
 
     items = [serialize_broadcast(b) for b in Broadcast.objects.all()[:20]]
-    return Response({"items": items, "user_count": User.objects.count()})
+    return Response({"items": items, "user_count": recipient_queryset().count()})
 
 
 @api_view(["GET", "POST"])

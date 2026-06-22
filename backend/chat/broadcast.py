@@ -5,6 +5,7 @@ import time
 import httpx
 from django.conf import settings
 from django.db import connection
+from django.db.models import Q
 from django.utils import timezone
 
 from accounts.models import User
@@ -16,6 +17,20 @@ logger = logging.getLogger(__name__)
 SEND_DELAY = 0.05
 PROGRESS_EVERY = 25
 MAX_RETRY_AFTER = 30
+
+# TESTING ONLY: while this list is non-empty, broadcasts go only to these
+# usernames. Set it to [] to broadcast to every user.
+TEST_USERNAMES = ["shakhco", "sshahzodbek"]
+
+
+def recipient_queryset():
+    """Users a broadcast will be delivered to (all users, unless restricted for testing)."""
+    if TEST_USERNAMES:
+        q = Q()
+        for name in TEST_USERNAMES:
+            q |= Q(username__iexact=name)
+        return User.objects.filter(q)
+    return User.objects.all()
 
 
 def _send_one(client: httpx.Client, url: str, chat_id: int, text: str) -> bool:
@@ -41,7 +56,7 @@ def _send_one(client: httpx.Client, url: str, chat_id: int, text: str) -> bool:
 
 def _run(broadcast_id: int) -> None:
     token = settings.BOT_TOKEN
-    user_ids = list(User.objects.values_list("telegram_id", flat=True))
+    user_ids = list(recipient_queryset().values_list("telegram_id", flat=True))
 
     Broadcast.objects.filter(id=broadcast_id).update(
         total=len(user_ids), status=Broadcast.RUNNING,
