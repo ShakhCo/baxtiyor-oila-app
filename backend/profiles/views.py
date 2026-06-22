@@ -1,0 +1,61 @@
+from rest_framework import status as http_status
+from rest_framework.decorators import api_view
+from rest_framework.response import Response
+
+from profiles.models import Profile
+from profiles.serializers import ProfileSerializer
+
+
+def _contact_from(user):
+    """Derive the contact string from the Telegram init data (no longer asked
+    in the form). Prefer @username; fall back to the numeric Telegram id."""
+    username = (getattr(user, "username", "") or "").strip()
+    if username:
+        return f"@{username}"
+    name = (getattr(user, "first_name", "") or "").strip()
+    return f"{name} (ID: {user.telegram_id})" if name else f"ID: {user.telegram_id}"
+
+
+@api_view(["GET", "POST", "PUT"])
+def my_anketa(request):
+    """Get / create / update the authenticated user's anketa.
+
+    GET  — returns {"submitted": false} or {"submitted": true, ...}
+    POST — creates (errors if already exists)
+    PUT  — updates an existing profile (errors if not exists)
+    """
+    user = request.user
+    try:
+        profile = Profile.objects.get(user=user)
+    except Profile.DoesNotExist:
+        profile = None
+
+    if request.method == "GET":
+        if profile is None:
+            return Response({"submitted": False})
+        return Response({"submitted": True, **ProfileSerializer(profile).data})
+
+    if request.method == "POST":
+        if profile is not None:
+            return Response(
+                {"detail": "Anketa already exists. Use PUT to update."},
+                status=http_status.HTTP_409_CONFLICT,
+            )
+        serializer = ProfileSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        serializer.save(user=user, contact_info=_contact_from(user))
+        return Response(
+            {"submitted": True, **serializer.data},
+            status=http_status.HTTP_201_CREATED,
+        )
+
+    # PUT
+    if profile is None:
+        return Response(
+            {"detail": "No anketa to update. POST first."},
+            status=http_status.HTTP_404_NOT_FOUND,
+        )
+    serializer = ProfileSerializer(profile, data=request.data)
+    serializer.is_valid(raise_exception=True)
+    serializer.save(contact_info=_contact_from(user))
+    return Response({"submitted": True, **serializer.data})

@@ -1,0 +1,315 @@
+/* Chat page shell: fixed header + the ChatThread fills the rest.
+   Shared by the user chat and the admin thread (AdminChatThreadPage). */
+
+.root {
+  position: relative;
+  box-sizing: border-box;
+  height: 100vh;
+  height: 100dvh;
+  background: #0d0b08;
+  color: #ece2c8;
+  font-family: 'Manrope', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  overflow: hidden;
+}
+
+/* glassy chat header overlay: centered name + status, messages scroll behind it */
+.header {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 3;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  padding: calc(var(--tg-viewport-safe-area-inset-top, 0px) + 14px) 18px 13px;
+  background: rgba(13, 11, 8, 0.6);
+  -webkit-backdrop-filter: blur(20px) saturate(1.3);
+  backdrop-filter: blur(20px) saturate(1.3);
+  border-bottom-left-radius: 12px;
+  border-bottom-right-radius: 12px;
+}
+
+/* admin thread only: clear Telegram's native header controls (the chat-info /
+   menu row) so the tag button doesn't collide with them. The user chat has no
+   top-corner control, so it keeps the tighter default padding. */
+.headerAdmin {
+  padding-top: calc(var(--tg-viewport-safe-area-inset-top, 0px) + var(--tg-viewport-content-safe-area-inset-top, 0px) + 14px);
+}
+
+/* soft hairline that fades out toward the edges */
+.header::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(233, 222, 198, 0.20), transparent);
+}
+
+.avatarImg {
+  flex: none;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  object-fit: cover;
+  background: #fff;
+  box-shadow: 0 0 0 1px rgba(200, 155, 84, 0.35);
+}
+
+.avatarInitials {
+  flex: none;
+  width: 44px;
+  height: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: #16120d;
+  border: 1px solid rgba(200, 155, 84, 0.3);
+  color: #c89b54;
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 18px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+.headerText {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.name {
+  font-family: 'Cormorant Garamond', 'Times New Roman', serif;
+  font-size: 22px;
+  font-weight: 700;
+  line-height: 1.1;
+  letter-spacing: -0.005em;
+  color: #ece2c8;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.status {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12.5px;
+  color: rgba(236, 226, 200, 0.55);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.dot {
+  flex: none;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #7faa6a;
+}
+
+.handle { color: #c89b54; }
+
+/* header skeleton — shown until the user's name/handle loads */
+.skelName,
+.skelStatus,
+.skelTag {
+  background: linear-gradient(100deg, #16120d 28%, #241d12 48%, #16120d 68%);
+  background-size: 220% 100%;
+  animation: headSkel 1.3s linear infinite;
+}
+
+.skelName,
+.skelStatus { border-radius: 6px; }
+
+.skelName { width: 148px; height: 20px; margin: 1px 0; }
+.skelStatus { width: 82px; height: 12px; margin: 1px 0; }
+
+/* skeleton stand-in for the tag button (same place + size) */
+.skelTag {
+  position: absolute;
+  right: 16px;
+  top: calc(var(--tg-viewport-safe-area-inset-top, 0px) + var(--tg-viewport-content-safe-area-inset-top, 0px) + 12px);
+  width: 38px;
+  height: 34px;
+  border-radius: 999px;
+}
+
+@keyframes headSkel {
+  to { background-position: -220% 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .skelName, .skelStatus, .skelTag { animation: none; }
+}
+
+/* ───── label editor (admin thread) ───── */
+.tagBtn {
+  position: absolute;
+  right: 16px;
+  top: calc(var(--tg-viewport-safe-area-inset-top, 0px) + var(--tg-viewport-content-safe-area-inset-top, 0px) + 12px);
+  z-index: 4;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  appearance: none;
+  border: 1px solid rgba(200, 155, 84, 0.5);
+  background: rgba(200, 155, 84, 0.14);
+  color: #d8b06a;
+  border-radius: 999px;
+  padding: 7px 10px;
+  cursor: pointer;
+}
+
+.tagCount {
+  font-size: 12px;
+  font-weight: 700;
+  color: #d8b06a;
+}
+
+.sheetBackdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  display: flex;
+  align-items: flex-end;
+  background: rgba(0, 0, 0, 0.55);
+  -webkit-backdrop-filter: blur(2px);
+  backdrop-filter: blur(2px);
+  animation: fadeIn 0.18s ease both;
+}
+
+.sheet {
+  width: 100%;
+  box-sizing: border-box;
+  background: #16120d;
+  border-top: 1px solid rgba(233, 222, 198, 0.14);
+  border-radius: 22px 22px 0 0;
+  padding: 22px 20px calc(var(--tg-viewport-safe-area-inset-bottom, 0px) + 22px);
+  animation: sheetUp 0.24s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+
+.sheetTitle {
+  margin: 0 0 14px;
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 24px;
+  font-weight: 600;
+  color: #ece2c8;
+}
+
+.sheetHint {
+  margin: 0 0 14px;
+  font-size: 13.5px;
+  color: rgba(236, 226, 200, 0.5);
+}
+
+.chipRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.chip {
+  appearance: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: 999px;
+  background: rgba(200, 155, 84, 0.16);
+  border: 1px solid rgba(200, 155, 84, 0.35);
+  color: #d8b06a;
+  font-family: inherit;
+  font-size: 13.5px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.chipX { font-size: 16px; line-height: 1; opacity: 0.8; }
+
+.addRow {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+.labelInput {
+  flex: 1;
+  appearance: none;
+  box-sizing: border-box;
+  padding: 12px 14px;
+  background: #1d180f;
+  color: #ece2c8;
+  border: 1px solid rgba(233, 222, 198, 0.18);
+  border-radius: 13px;
+  font-family: inherit;
+  font-size: 16px;
+}
+
+.labelInput::placeholder { color: rgba(236, 226, 200, 0.32); }
+.labelInput:focus { outline: none; border-color: #c89b54; }
+
+.addBtn {
+  flex: none;
+  appearance: none;
+  border: none;
+  padding: 0 18px;
+  border-radius: 13px;
+  background: #c89b54;
+  color: #1b1206;
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 17px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s ease, opacity 0.15s ease;
+}
+
+.addBtn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+.presets {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.preset {
+  appearance: none;
+  padding: 7px 13px;
+  border-radius: 999px;
+  background: transparent;
+  border: 1px dashed rgba(233, 222, 198, 0.22);
+  color: rgba(236, 226, 200, 0.7);
+  font-family: inherit;
+  font-size: 13.5px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: border-color 0.15s ease, color 0.15s ease;
+}
+
+.preset:hover { border-color: #c89b54; color: #d8b06a; }
+
+.sheetClose {
+  width: 100%;
+  margin-top: 20px;
+  appearance: none;
+  border: 1px solid rgba(233, 222, 198, 0.16);
+  background: transparent;
+  color: rgba(236, 226, 200, 0.7);
+  border-radius: 13px;
+  padding: 13px;
+  font-family: inherit;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+@keyframes sheetUp { from { transform: translateY(100%); } to { transform: translateY(0); } }

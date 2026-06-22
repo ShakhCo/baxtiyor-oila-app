@@ -1,0 +1,168 @@
+import { openTelegramLink } from '@tma.js/sdk-react';
+import { useEffect, useState, type FC } from 'react';
+import { useNavigate } from 'react-router-dom';
+
+import { apiGet } from '@/api/client';
+import { Page } from '@/components/Page.tsx';
+
+import logoUrl from './logo.png';
+import iconMemo from './icons/memo.png';
+import iconClipboard from './icons/clipboard.png';
+import iconMoney from './icons/money.png';
+import iconPeople from './icons/people.png';
+import iconFree from './icons/free.png';
+import iconPhone from './icons/phone.png';
+import iconWoman from './icons/woman.png';
+import iconShield from './icons/shield.png';
+import s from './IndexPage.module.css';
+
+const ADMIN_PRIMARY = 'BaxtiyorOila_admin';
+const ADMIN_SECONDARY = 'Babaeva_L_S';
+
+function Chevron() {
+  return (
+    <svg width="14" height="14" viewBox="0 0 14 14" aria-hidden>
+      <path
+        d="M5 2 L10 7 L5 12"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.7"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
+type CardProps = {
+  iconUrl: string;
+  iconAlt?: string;
+  title: string;
+  subtitle: string;
+  onClick?: () => void;
+};
+
+function Card({ iconUrl, iconAlt = '', title, subtitle, onClick }: CardProps) {
+  const interactive = typeof onClick === 'function';
+
+  return (
+    <button
+      type="button"
+      className={s.card}
+      onClick={onClick}
+      tabIndex={interactive ? 0 : -1}
+      aria-disabled={!interactive || undefined}
+    >
+      <span className={s.cardIcon}>
+        <img src={iconUrl} alt={iconAlt} />
+      </span>
+      <span className={s.cardBody}>
+        <span className={s.cardTitle}>{title}</span>
+        <span className={s.cardSubtitle}>{subtitle}</span>
+      </span>
+      <span className={s.cardArrow}><Chevron /></span>
+    </button>
+  );
+}
+
+export const IndexPage: FC = () => {
+  const navigate = useNavigate();
+  const [isAdmin, setIsAdmin] = useState(false);
+
+  useEffect(() => {
+    apiGet<{ is_admin: boolean }>('/me')
+      .then(data => setIsAdmin(Boolean(data.is_admin)))
+      .catch(() => { /* not admin or auth issue — landing still renders fine */ });
+  }, []);
+
+  return (
+    <Page back={false}>
+      <div className={s.root}>
+        <header className={s.hero}>
+          <img src={logoUrl} alt="Baxtiyor Oila" className={s.logo} />
+          <div className={s.heroText}>
+            <h1 className={s.title}>Baxtiyor Oila</h1>
+            <p className={s.tagline}>
+              Germaniyadagi o‘zbeklar uchun jiddiy va ishonchli juftlik tanlash xizmati.
+            </p>
+          </div>
+        </header>
+
+        <main className={s.sections}>
+          <section className={s.section}>
+            <h2 className={s.sectionLabel}>Boshlash</h2>
+            <div className={s.cards}>
+              <Card
+                iconUrl={iconMemo}
+                title="Anketa to‘ldirish"
+                subtitle="Ma‘lumotlaringizni yuboring — admin siz bilan bog‘lanadi"
+                onClick={() => navigate('/anketa')}
+              />
+            </div>
+          </section>
+
+          <section className={s.section}>
+            <h2 className={s.sectionLabel}>Loyiha haqida</h2>
+            <div className={s.cards}>
+              <Card
+                iconUrl={iconClipboard}
+                title="Yo‘riqnoma"
+                subtitle="Loyiha qoidalari va ish tartibi"
+              />
+              <Card
+                iconUrl={iconMoney}
+                title="Tariflar"
+                subtitle="Basic 20€ va Standart 50€"
+              />
+              <Card
+                iconUrl={iconPeople}
+                title="Nomzodlar"
+                subtitle="Nomzodlar haqida ma‘lumot olish"
+              />
+              <Card
+                iconUrl={iconFree}
+                title="Bepul hizmat"
+                subtitle="Bepul anketa va umumiy yondashuv"
+              />
+            </div>
+          </section>
+
+          <section className={s.section}>
+            <h2 className={s.sectionLabel}>Aloqa</h2>
+            <div className={s.cards}>
+              <Card
+                iconUrl={iconPhone}
+                title="Admin"
+                subtitle={`@${ADMIN_PRIMARY}`}
+                onClick={() => openTelegramLink(`https://t.me/${ADMIN_PRIMARY}`)}
+              />
+              <Card
+                iconUrl={iconWoman}
+                title="Lobar"
+                subtitle={`@${ADMIN_SECONDARY}`}
+                onClick={() => openTelegramLink(`https://t.me/${ADMIN_SECONDARY}`)}
+              />
+            </div>
+            <p className={s.sectionFooter}>
+              Savol yoki taklifingiz bo‘lsa, biz bilan bog‘laning.
+            </p>
+          </section>
+
+          {isAdmin && (
+            <section className={s.section}>
+              <h2 className={s.sectionLabel}>Admin</h2>
+              <div className={s.cards}>
+                <Card
+                  iconUrl={iconShield}
+                  title="Anketalar paneli"
+                  subtitle="Yangi anketalarni ko‘rib chiqish"
+                  onClick={() => navigate('/admin')}
+                />
+              </div>
+            </section>
+          )}
+        </main>
+      </div>
+    </Page>
+  );
+};

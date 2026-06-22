@@ -1,0 +1,58 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: baxtiyor-postgres
+    environment:
+      POSTGRES_USER: baxtiyor
+      POSTGRES_PASSWORD: dev_password
+      POSTGRES_DB: baxtiyor_dev
+    ports:
+      - "5435:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U baxtiyor"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: baxtiyor-backend
+    env_file:
+      - .env
+    ports:
+      - "8002:8000"
+    volumes:
+      - ./backend:/app
+    depends_on:
+      postgres:
+        condition: service_healthy
+    command: ["python", "manage.py", "runserver", "0.0.0.0:8000"]
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: baxtiyor-frontend
+    ports:
+      - "5173:5173"
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    depends_on:
+      - backend
+    command: ["npm", "run", "dev"]
+
+  cloudflared:
+    image: cloudflare/cloudflared:latest
+    container_name: baxtiyor-cloudflared
+    command: ["tunnel", "--no-autoupdate", "--url", "http://frontend:5173"]
+    depends_on:
+      - frontend
+    restart: unless-stopped
+
+volumes:
+  postgres_data:

@@ -1,0 +1,72 @@
+/* fade so content dissolves into the background under the floating nav */
+.fade {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 130px;
+  background: linear-gradient(to top, #0d0b08 32%, rgba(13, 11, 8, 0));
+  pointer-events: none;
+  z-index: 29;
+}
+
+/* floating rounded pill. No side margin here — in flow mode (chat) the parent's
+   side padding already insets it; the fixed mode (landing) adds its own. */
+.nav {
+  flex: none;
+  display: flex;
+  margin: 6px 0 calc(var(--tg-viewport-safe-area-inset-bottom, 0px) + 12px);
+  padding: 6px 7px;
+  background: rgba(22, 18, 13, 0.92);
+  border: 1px solid rgba(233, 222, 198, 0.12);
+  border-radius: 20px;
+  box-shadow: 0 14px 32px -14px rgba(0, 0, 0, 0.7);
+  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px);
+}
+
+/* fixed mode for scrolling pages (the landing) — the margins make it float */
+.fixed {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  margin-left: 18px;
+  margin-right: 18px;
+  z-index: 30;
+}
+
+.tab {
+  flex: 1;
+  appearance: none;
+  border: none;
+  background: transparent;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 11px 0;
+  border-radius: 15px;
+  cursor: pointer;
+  color: rgba(236, 226, 200, 0.42);
+  font-family: 'Manrope', -apple-system, system-ui, sans-serif;
+  -webkit-tap-highlight-color: transparent;
+  transition: color 0.15s ease, background 0.15s ease;
+}
+
+.tab svg {
+  width: 21px;
+  height: 21px;
+}
+
+.active {
+  color: #c89b54;
+  background: rgba(200, 155, 84, 0.10);
+}
+
+.label {
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+}

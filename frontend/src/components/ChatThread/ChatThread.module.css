@@ -1,0 +1,193 @@
+/* Chat thread: scrollable message list + sticky composer.
+   Shares the app's warm dark + gold system. */
+
+.thread {
+  --c-bg:      #0d0b08;
+  --c-surface: #16120d;
+  --c-line:    rgba(233, 222, 198, 0.10);
+  --c-line-2:  rgba(233, 222, 198, 0.18);
+  --c-text:    #ece2c8;
+  --c-mute:    rgba(236, 226, 200, 0.42);
+  --c-gold:    #c89b54;
+  --c-gold-2:  #d8b06a;
+
+  position: absolute;
+  inset: 0;
+  color-scheme: dark;
+}
+
+/* full-height scroll; the glassy header/composer overlay it. Top padding clears
+   the header; bottom padding is kept matched to the composer height in JS. */
+.scroll {
+  position: absolute;
+  inset: 0;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: calc(var(--tg-viewport-safe-area-inset-top, 0px) + 86px) 18px 80px;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* admin thread has a taller header (clears Telegram's controls) — push the
+   first message down by the same content-safe inset so it isn't hidden under it */
+.scrollAdmin {
+  padding-top: calc(var(--tg-viewport-safe-area-inset-top, 0px) + var(--tg-viewport-content-safe-area-inset-top, 0px) + 86px);
+}
+
+.empty {
+  margin: auto;
+  font-family: 'Cormorant Garamond', serif;
+  font-style: italic;
+  font-size: 17px;
+  color: var(--c-mute);
+  text-align: center;
+}
+
+.row {
+  display: flex;
+  max-width: 100%;
+}
+
+.mine { justify-content: flex-end; }
+.theirs { justify-content: flex-start; }
+
+.bubble {
+  max-width: 80%;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  padding: 10px 13px 7px;
+  border-radius: 16px;
+  font-size: 15px;
+  line-height: 1.4;
+}
+
+.theirs .bubble {
+  background: var(--c-surface);
+  border: 1px solid var(--c-line);
+  border-bottom-left-radius: 5px;
+  color: var(--c-text);
+}
+
+.mine .bubble {
+  background: var(--c-gold);
+  color: #1b1206;
+  border-bottom-right-radius: 5px;
+}
+
+.text { white-space: pre-wrap; word-break: break-word; }
+
+/* loading skeleton bubbles */
+.skelBubble {
+  display: block;
+  border-radius: 16px;
+  background: linear-gradient(100deg, #16120d 28%, #241d12 48%, #16120d 68%);
+  background-size: 220% 100%;
+  animation: chatSkel 1.3s linear infinite;
+}
+
+.theirs .skelBubble { border-bottom-left-radius: 5px; }
+.mine .skelBubble { border-bottom-right-radius: 5px; }
+
+@keyframes chatSkel {
+  to { background-position: -220% 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .skelBubble { animation: none; }
+}
+
+.time {
+  align-self: flex-end;
+  font-size: 11px;
+  letter-spacing: 0.02em;
+  opacity: 0.6;
+}
+
+/* mine bubbles are on gold — keep the timestamp legible */
+.mine .time { color: #1b1206; opacity: 0.55; }
+.theirs .time { color: var(--c-mute); }
+
+/* composer — glassy overlay pinned to the bottom; messages scroll behind it */
+.inputBar {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 3;
+  display: flex;
+  align-items: flex-end;
+  gap: 10px;
+  /* Telegram exposes safe areas via its own CSS vars (not env()) */
+  padding: 10px 18px calc(var(--tg-viewport-safe-area-inset-bottom, 0px) + 12px);
+  background: rgba(13, 11, 8, 0.6);
+  -webkit-backdrop-filter: blur(20px) saturate(1.3);
+  backdrop-filter: blur(20px) saturate(1.3);
+  border-top-left-radius: 12px;
+  border-top-right-radius: 12px;
+}
+
+.input {
+  flex: 1;
+  appearance: none;
+  resize: none;
+  max-height: 132px;
+  overflow-y: auto;
+  box-sizing: border-box;
+  padding: 12px 14px;
+  background: var(--c-surface);
+  color: var(--c-text);
+  border: 1px solid var(--c-line-2);
+  border-radius: 18px;
+  font-family: inherit;
+  font-size: 16px;
+  line-height: 1.4;
+  transition: border-color 0.15s ease;
+}
+
+.input::placeholder { color: rgba(236, 226, 200, 0.32); }
+.input:focus { outline: none; border-color: var(--c-gold); }
+
+.send {
+  flex: none;
+  width: 44px;
+  height: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  border-radius: 50%;
+  background: var(--c-gold);
+  color: #1b1206;
+  cursor: pointer;
+  transition: background 0.15s ease, opacity 0.15s ease, transform 0.1s ease;
+}
+
+.send:hover:not(:disabled) { background: var(--c-gold-2); }
+.send:active:not(:disabled) { transform: scale(0.95); }
+.send:disabled {
+  background: var(--c-surface);
+  color: var(--c-mute);
+  cursor: not-allowed;
+}
+
+/* while sending: stay gold and show a spinner (overrides the disabled look) */
+.send.sending {
+  background: var(--c-gold);
+  color: #1b1206;
+  cursor: default;
+}
+
+.spinner {
+  width: 18px;
+  height: 18px;
+  border: 2px solid rgba(27, 18, 6, 0.25);
+  border-top-color: #1b1206;
+  border-radius: 50%;
+  animation: chatspin 0.7s linear infinite;
+}
+
+@keyframes chatspin {
+  to { transform: rotate(360deg); }
+}
