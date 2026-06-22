@@ -1,13 +1,16 @@
 import { useEffect, useState, type FC } from 'react';
 import { useParams } from 'react-router-dom';
+import { useQueryClient } from '@tanstack/react-query';
 
 import { Page } from '@/components/Page.tsx';
 import { ChatThread } from '@/components/ChatThread/ChatThread';
-import { apiGet, apiPost } from '@/api/client';
+import { LabelSheet } from '@/components/LabelSheet/LabelSheet';
+import { apiGet } from '@/api/client';
 
 import s from '@/pages/ChatPage/ChatPage.module.css';
 
 type Meta = { user?: { name: string; username: string }; labels?: string[] };
+type ChatsPayload = { items: { telegram_id: number; labels: string[] }[]; all_labels?: string[] };
 
 function TagIcon() {
   return (
@@ -21,13 +24,13 @@ function TagIcon() {
 
 export const AdminChatThreadPage: FC = () => {
   const { telegramId } = useParams<{ telegramId: string }>();
+  const queryClient = useQueryClient();
   const [name, setName] = useState('');
   const [username, setUsername] = useState('');
   const [metaLoaded, setMetaLoaded] = useState(false);
   const [labels, setLabels] = useState<string[]>([]);
   const [presets, setPresets] = useState<string[]>([]);
   const [open, setOpen] = useState(false);
-  const [draft, setDraft] = useState('');
 
   useEffect(() => {
     apiGet<{ labels: string[] }>('/admin/labels')
@@ -35,18 +38,17 @@ export const AdminChatThreadPage: FC = () => {
       .catch(() => { /* presets optional */ });
   }, []);
 
-  function save(next: string[]) {
-    const clean = Array.from(new Set(next.map(l => l.trim()).filter(Boolean))).slice(0, 8);
-    setLabels(clean);
-    apiPost(`/admin/chats/${telegramId}/labels`, { labels: clean }).catch(() => { /* keep local */ });
-  }
-  function addLabel(value: string) {
-    const v = value.trim();
-    setDraft('');
-    if (v && !labels.includes(v)) save([...labels, v]);
-  }
-  function removeLabel(value: string) {
-    save(labels.filter(l => l !== value));
+  // reflect a label change back onto the chat-list cache so the inbox shows the
+  // up-to-date labels without waiting for its next poll
+  function patchListLabels(next: string[]) {
+    queryClient.setQueryData<ChatsPayload>(['admin-chats'], (old) =>
+      old
+        ? {
+            ...old,
+            items: old.items.map(it =>
+              it.telegram_id === Number(telegramId) ? { ...it, labels: next } : it),
+          }
+        : old);
   }
 
   return (
@@ -93,54 +95,13 @@ export const AdminChatThreadPage: FC = () => {
         />
 
         {open && (
-          <div className={s.sheetBackdrop} onClick={() => setOpen(false)}>
-            <div className={s.sheet} onClick={e => e.stopPropagation()}>
-              <h2 className={s.sheetTitle}>Belgilar</h2>
-
-              {labels.length > 0 ? (
-                <div className={s.chipRow}>
-                  {labels.map(l => (
-                    <button key={l} type="button" className={s.chip} onClick={() => removeLabel(l)}>
-                      {l}<span className={s.chipX}>×</span>
-                    </button>
-                  ))}
-                </div>
-              ) : (
-                <p className={s.sheetHint}>Bu suhbatga hali belgi qo‘shilmagan.</p>
-              )}
-
-              <div className={s.addRow}>
-                <input
-                  className={s.labelInput}
-                  value={draft}
-                  onChange={e => setDraft(e.target.value)}
-                  onKeyDown={e => { if (e.key === 'Enter') addLabel(draft); }}
-                  placeholder="Yangi belgi…"
-                  maxLength={40}
-                />
-                <button
-                  type="button"
-                  className={s.addBtn}
-                  onClick={() => addLabel(draft)}
-                  disabled={!draft.trim()}
-                >
-                  Qo‘shish
-                </button>
-              </div>
-
-              <div className={s.presets}>
-                {presets.filter(p => !labels.includes(p)).map(p => (
-                  <button key={p} type="button" className={s.preset} onClick={() => addLabel(p)}>
-                    + {p}
-                  </button>
-                ))}
-              </div>
-
-              <button type="button" className={s.sheetClose} onClick={() => setOpen(false)}>
-                Yopish
-              </button>
-            </div>
-          </div>
+          <LabelSheet
+            telegramId={telegramId!}
+            initial={labels}
+            allLabels={presets}
+            onClose={() => setOpen(false)}
+            onSaved={(next) => { setLabels(next); patchListLabels(next); }}
+          />
         )}
       </div>
     </Page>

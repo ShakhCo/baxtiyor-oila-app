@@ -3,10 +3,13 @@ import { useNavigate } from 'react-router-dom';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 
 import { Page } from '@/components/Page.tsx';
+import { LabelSheet } from '@/components/LabelSheet/LabelSheet';
 import { apiGet, apiPost } from '@/api/client';
 
 import s from './AdminChatPage.module.css';
 import sheet from '@/pages/ChatPage/ChatPage.module.css';
+
+const LONG_PRESS_MS = 450;
 
 type Item = {
   telegram_id: number;
@@ -103,6 +106,21 @@ export const AdminChatPage: FC = () => {
   const [search, setSearch] = useState(cachedSearch);
   const [searchOpen, setSearchOpen] = useState(cachedSearch.length > 0);
   const searchRef = useRef<HTMLInputElement>(null);
+  const [labelTarget, setLabelTarget] = useState<Item | null>(null);
+  const pressTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const longPressedRef = useRef(false);
+
+  // Long-press a row to assign labels without opening the chat.
+  function startPress(it: Item) {
+    longPressedRef.current = false;
+    pressTimer.current = setTimeout(() => {
+      longPressedRef.current = true;
+      setLabelTarget(it);
+    }, LONG_PRESS_MS);
+  }
+  function endPress() {
+    if (pressTimer.current) { clearTimeout(pressTimer.current); pressTimer.current = null; }
+  }
 
   useEffect(() => {
     const onScroll = () => setScrolledDown(window.scrollY > 500);
@@ -137,6 +155,14 @@ export const AdminChatPage: FC = () => {
   function patchLabels(labels: string[]) {
     queryClient.setQueryData<ChatsPayload>(CHATS_KEY, (prev) =>
       prev ? { ...prev, all_labels: labels } : prev);
+  }
+
+  // update one row's labels in the cached list (after assigning via long-press)
+  function patchItemLabels(id: number, labels: string[]) {
+    queryClient.setQueryData<ChatsPayload>(CHATS_KEY, (prev) =>
+      prev
+        ? { ...prev, items: prev.items.map(it => (it.telegram_id === id ? { ...it, labels } : it)) }
+        : prev);
   }
 
   async function addLabel() {
@@ -248,7 +274,15 @@ export const AdminChatPage: FC = () => {
                 key={it.telegram_id}
                 type="button"
                 className={s.item}
-                onClick={() => openChat(it.telegram_id)}
+                onPointerDown={() => startPress(it)}
+                onPointerUp={endPress}
+                onPointerCancel={endPress}
+                onPointerLeave={endPress}
+                onContextMenu={e => e.preventDefault()}
+                onClick={() => {
+                  if (longPressedRef.current) { longPressedRef.current = false; return; }
+                  openChat(it.telegram_id);
+                }}
               >
                 <span className={s.avatar} aria-hidden>{initials(it.name)}</span>
                 <span className={s.main}>
@@ -282,6 +316,16 @@ export const AdminChatPage: FC = () => {
           >
             <Chevron up={scrolledDown} />
           </button>
+        )}
+
+        {labelTarget && (
+          <LabelSheet
+            telegramId={labelTarget.telegram_id}
+            initial={labelTarget.labels ?? []}
+            allLabels={allLabels}
+            onClose={() => setLabelTarget(null)}
+            onSaved={(next) => patchItemLabels(labelTarget.telegram_id, next)}
+          />
         )}
 
         {adding && (
