@@ -2,8 +2,27 @@ from rest_framework import status as http_status
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 
+from chat.models import Conversation, Label
 from profiles.models import Profile
 from profiles.serializers import ProfileSerializer
+
+# Chat label applied to a user based on the tariff they picked in the anketa.
+TARIFF_LABELS = {"basic": "20 €", "standart": "50 €"}
+
+
+def _assign_tariff_label(user, tariff):
+    """Tag the user's support thread with their tariff price (20 € / 50 €),
+    replacing any previous tariff label, so admins can filter by it."""
+    label = TARIFF_LABELS.get(tariff)
+    if not label:
+        return
+    conv, _ = Conversation.objects.get_or_create(user=user)
+    tariff_labels = set(TARIFF_LABELS.values())
+    labels = [l for l in (conv.labels or []) if l not in tariff_labels]
+    labels.append(label)
+    conv.labels = labels[:8]
+    conv.save(update_fields=["labels"])
+    Label.objects.get_or_create(name=label)  # keep it in the global filter set
 
 
 def _contact_from(user):
@@ -44,6 +63,7 @@ def my_anketa(request):
         serializer = ProfileSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         serializer.save(user=user, contact_info=_contact_from(user))
+        _assign_tariff_label(user, serializer.instance.tariff)
         return Response(
             {"submitted": True, **serializer.data},
             status=http_status.HTTP_201_CREATED,
@@ -58,4 +78,5 @@ def my_anketa(request):
     serializer = ProfileSerializer(profile, data=request.data)
     serializer.is_valid(raise_exception=True)
     serializer.save(contact_info=_contact_from(user))
+    _assign_tariff_label(user, serializer.instance.tariff)
     return Response({"submitted": True, **serializer.data})
