@@ -1,0 +1,47 @@
+# Production stack. Backend + Postgres stay on the internal Docker network with
+# no public ports. The frontend container (nginx) serves the SPA and proxies
+# /api to the backend, and is published only on 127.0.0.1:8080 — the host nginx
+# terminates TLS for the public domain and forwards to it.
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: baxtiyor-postgres
+    environment:
+      POSTGRES_USER: ${DB_USER:-baxtiyor}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:?set DB_PASSWORD in .env}
+      POSTGRES_DB: ${DB_NAME:-baxtiyor}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-baxtiyor}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: baxtiyor-backend
+    env_file:
+      - .env
+    depends_on:
+      postgres:
+        condition: service_healthy
+    command: ["gunicorn", "config.wsgi:application", "--bind", "0.0.0.0:8000", "--workers", "3", "--timeout", "120"]
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.prod
+    container_name: baxtiyor-frontend
+    ports:
+      - "127.0.0.1:8080:80"
+    depends_on:
+      - backend
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
