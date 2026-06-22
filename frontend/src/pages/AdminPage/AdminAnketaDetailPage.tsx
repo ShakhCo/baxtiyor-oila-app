@@ -112,7 +112,25 @@ export const AdminAnketaDetailPage: FC = () => {
   }
 
   if (loading) {
-    return <Page><div className={s.root}><div className={s.loading}>Yuklanmoqda…</div></div></Page>;
+    return (
+      <Page>
+        <div className={`${s.root} ${s.rootFlat}`}>
+          <div className={s.fadeTop} aria-hidden />
+          <div className={s.skelHeader} aria-hidden>
+            <div className={`${s.skelBar} ${s.skelName}`} />
+            <div className={`${s.skelBar} ${s.skelMeta}`} />
+            <div className={`${s.skelBar} ${s.skelBadge}`} />
+          </div>
+          {Array.from({ length: 4 }).map((_, i) => (
+            <div className={s.skelSection} key={i} aria-hidden>
+              <div className={`${s.skelBar} ${s.skelLabel}`} />
+              <div className={`${s.skelBar} ${s.skelRow}`} />
+              <div className={`${s.skelBar} ${s.skelRow} ${s.skelRow2}`} />
+            </div>
+          ))}
+        </div>
+      </Page>
+    );
   }
   if (!data) {
     return <Page><div className={s.root}><div className={s.empty}>Anketa topilmadi</div></div></Page>;

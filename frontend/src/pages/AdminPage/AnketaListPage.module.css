@@ -44,7 +44,7 @@
   align-items: flex-end;
   justify-content: space-between;
   gap: 12px;
-  padding: 2px 0 4px;
+  padding: 2px 0 10px;
 }
 
 .eyebrow {
@@ -90,10 +90,10 @@
   display: flex;
   gap: 8px;
   overflow-x: auto;
-  /* small top buffer (closer to the title), solid bottom buffer so list rows
-     never touch the pills when they scroll under the sticky bar */
-  margin: 0 -18px 8px;
-  padding: 2px 18px 12px;
+  /* symmetric vertical padding → equal space above (to the title) and below
+     (to the list); the bottom also buffers rows scrolling under the sticky bar */
+  margin: 0 -18px 10px;
+  padding: 10px 18px;
   background: #0d0b08;
   scrollbar-width: none;
   -webkit-overflow-scrolling: touch;
