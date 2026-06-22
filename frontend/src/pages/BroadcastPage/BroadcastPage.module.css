@@ -82,12 +82,23 @@
 }
 
 .card {
+  display: block;
+  width: 100%;
+  text-align: left;
+  appearance: none;
+  font-family: inherit;
+  color: inherit;
   padding: 14px;
   margin-bottom: 12px;
   background: #16120d;
   border: 1px solid rgba(233, 222, 198, 0.1);
   border-radius: 14px;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: border-color 0.15s ease, transform 0.12s ease;
 }
+
+.card:active { transform: scale(0.99); border-color: rgba(200, 155, 84, 0.4); }
 
 .cardTop {
   display: flex;
@@ -163,3 +174,66 @@
 }
 
 .confirmSend:disabled { opacity: 0.5; cursor: not-allowed; }
+
+/* ── broadcast detail / report ── */
+.fullText {
+  -webkit-line-clamp: unset;
+  display: block;
+}
+
+.group { margin-top: 22px; }
+
+.groupTitle {
+  margin: 0 0 6px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: rgba(236, 226, 200, 0.5);
+}
+
+.recipient {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 11px 2px;
+  border-top: 1px solid rgba(233, 222, 198, 0.07);
+}
+
+.dot {
+  flex: none;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+
+.dotOk { background: #7faa6a; }
+.dotFail { background: #d98a7f; }
+
+.recipientName {
+  flex: 1;
+  min-width: 0;
+  font-size: 14.5px;
+  color: #ece2c8;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.recipientUser {
+  flex: none;
+  font-size: 13px;
+  color: #c89b54;
+}
+
+.detailSkel {
+  height: 14px;
+  width: 60%;
+  margin: 14px 0;
+  border-radius: 6px;
+  background: linear-gradient(100deg, #16120d 28%, #241d12 48%, #16120d 68%);
+  background-size: 220% 100%;
+  animation: bSkel 1.3s linear infinite;
+}
+
+@keyframes bSkel { to { background-position: -220% 0; } }

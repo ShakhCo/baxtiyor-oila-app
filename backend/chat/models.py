@@ -68,6 +68,27 @@ class Broadcast(models.Model):
         return f"Broadcast<{self.id} {self.status} {self.sent}/{self.total}>"
 
 
+class BroadcastRecipient(models.Model):
+    """Per-user delivery outcome for a broadcast (name/username denormalised so
+    the report is stable even if the user later changes)."""
+
+    SENT = "sent"
+    FAILED = "failed"
+    STATUS_CHOICES = [(SENT, "sent"), (FAILED, "failed")]
+
+    broadcast = models.ForeignKey(Broadcast, on_delete=models.CASCADE, related_name="recipients")
+    telegram_id = models.BigIntegerField()
+    name = models.CharField(max_length=128, blank=True)
+    username = models.CharField(max_length=64, blank=True)
+    status = models.CharField(max_length=8, choices=STATUS_CHOICES)
+
+    class Meta:
+        indexes = [models.Index(fields=["broadcast", "status"], name="bcast_recipient_status_idx")]
+
+    def __str__(self) -> str:
+        return f"{self.status}: {self.name or self.telegram_id}"
+
+
 class Message(models.Model):
     USER = "user"
     ADMIN = "admin"

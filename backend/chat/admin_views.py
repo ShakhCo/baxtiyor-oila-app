@@ -1,4 +1,4 @@
-from django.db.models import F, Max
+from django.db.models import Case, F, IntegerField, Max, Value, When
 from django.db.models.functions import Coalesce
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
@@ -95,6 +95,27 @@ def broadcasts(request):
 
     items = [serialize_broadcast(b) for b in Broadcast.objects.all()[:20]]
     return Response({"items": items, "user_count": recipient_queryset().count()})
+
+
+@api_view(["GET"])
+@permission_classes([IsAdmin])
+def broadcast_detail(request, broadcast_id: int):
+    """A broadcast plus its per-user delivery report — delivered first, failed last."""
+    bc = get_object_or_404(Broadcast, id=broadcast_id)
+    rows = (
+        bc.recipients
+        .annotate(ord=Case(
+            When(status="sent", then=Value(0)),
+            default=Value(1),
+            output_field=IntegerField(),
+        ))
+        .order_by("ord", "name")
+        .values("telegram_id", "name", "username", "status")
+    )
+    return Response({
+        **serialize_broadcast(bc),
+        "recipients": list(rows),
+    })
 
 
 @api_view(["GET", "POST"])

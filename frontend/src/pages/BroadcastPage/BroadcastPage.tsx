@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState, type FC } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 import { Page } from '@/components/Page.tsx';
@@ -38,6 +39,7 @@ function statusLabel(b: Broadcast): string {
 
 export const BroadcastPage: FC = () => {
   const queryClient = useQueryClient();
+  const navigate = useNavigate();
   const [text, setText] = useState('');
   const [confirm, setConfirm] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -99,7 +101,12 @@ export const BroadcastPage: FC = () => {
               const done = b.sent + b.failed;
               const pct = b.total ? Math.round((done / b.total) * 100) : 0;
               return (
-                <div key={b.id} className={s.card}>
+                <button
+                  key={b.id}
+                  type="button"
+                  className={s.card}
+                  onClick={() => navigate(`/admin/broadcast/${b.id}`)}
+                >
                   <div className={s.cardTop}>
                     <span className={`${s.badge} ${b.status === 'done' ? s.badgeDone : s.badgeRun}`}>
                       {statusLabel(b)}
@@ -117,7 +124,7 @@ export const BroadcastPage: FC = () => {
                       <div className={s.progressBar} style={{ width: `${pct}%` }} />
                     </div>
                   )}
-                </div>
+                </button>
               );
             })}
           </div>
