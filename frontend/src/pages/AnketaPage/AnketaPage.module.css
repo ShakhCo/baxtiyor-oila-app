@@ -231,6 +231,111 @@
   color: var(--text);
 }
 
+/* custom birthplace picker trigger — looks like an input, opens a sheet
+   (native <select> popups are unreliable in the Telegram webview) */
+.selectBtn {
+  appearance: none;
+  width: 100%;
+  box-sizing: border-box;
+  display: block;
+  text-align: left;
+  cursor: pointer;
+  padding: 14px 40px 14px 15px;
+  background: var(--surface);
+  color: var(--text);
+  border: 1px solid var(--line-2);
+  border-radius: 13px;
+  font-family: inherit;
+  font-size: 16px;
+  line-height: 1.4;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 14 14'><path d='M3 5 L7 9 L11 5' fill='none' stroke='%23c89b54' stroke-width='1.7' stroke-linecap='round' stroke-linejoin='round'/></svg>");
+  background-repeat: no-repeat;
+  background-position: right 16px center;
+  -webkit-tap-highlight-color: transparent;
+  transition: border-color 0.15s ease;
+}
+
+.selectBtn:active { border-color: var(--gold); }
+.selectBtnEmpty { color: var(--text-mute); }
+
+/* ───── picker bottom sheet ───── */
+.sheetBackdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  display: flex;
+  align-items: flex-end;
+  background: rgba(0, 0, 0, 0.55);
+  -webkit-backdrop-filter: blur(2px);
+  backdrop-filter: blur(2px);
+  animation: anketaSheetFade 0.18s ease both;
+}
+
+.sheet {
+  width: 100%;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  max-height: 78vh;
+  background: var(--surface);
+  border-top: 1px solid var(--line-2);
+  border-radius: 22px 22px 0 0;
+  padding: 20px 18px calc(var(--tg-viewport-safe-area-inset-bottom, 0px) + 18px);
+  animation: anketaSheetUp 0.24s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+
+.sheetTitle {
+  margin: 0 0 14px;
+  font-family: 'Cormorant Garamond', 'Times New Roman', serif;
+  font-size: 24px;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.options {
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.option {
+  appearance: none;
+  width: 100%;
+  text-align: left;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 14px 15px;
+  background: var(--surface-2);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  color: var(--text);
+  font-family: inherit;
+  font-size: 16px;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: background 0.12s ease, border-color 0.12s ease, color 0.12s ease;
+}
+
+.option:active { background: #241d12; }
+
+.optionActive {
+  border-color: var(--gold);
+  background: rgba(200, 155, 84, 0.12);
+  color: var(--gold-2);
+}
+
+.optionCheck { flex: none; color: var(--gold); font-weight: 700; }
+
+@keyframes anketaSheetFade { from { opacity: 0; } to { opacity: 1; } }
+@keyframes anketaSheetUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+
 .hint {
   margin-top: 8px;
   font-size: 13px;

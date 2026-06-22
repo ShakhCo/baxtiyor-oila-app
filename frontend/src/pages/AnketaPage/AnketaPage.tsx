@@ -118,6 +118,7 @@ export const AnketaPage: FC = () => {
   const [error, setError]     = useState<string | null>(null);
   const [viewing, setViewing] = useState(false); // read-only view of submitted anketa
   const [animateSuccess, setAnimateSuccess] = useState(false); // play opening only on fresh submit
+  const [regionOpen, setRegionOpen] = useState(false); // custom birthplace picker sheet
 
   useEffect(() => {
     apiGet<AnketaResponse>('/anketa')
@@ -392,17 +393,15 @@ export const AnketaPage: FC = () => {
                 </Field>
 
                 <Field label="Tug‘ilgan joyi" required>
-                  <select
-                    className={s.select}
-                    value={form.birthplace_region}
-                    onChange={onField('birthplace_region')}
-                    required
+                  <button
+                    type="button"
+                    className={form.birthplace_region ? s.selectBtn : `${s.selectBtn} ${s.selectBtnEmpty}`}
+                    onClick={() => setRegionOpen(true)}
                   >
-                    <option value="" disabled>Tanlang…</option>
-                    {REGIONS.map(r => (
-                      <option key={r.value} value={r.value}>{r.label}</option>
-                    ))}
-                  </select>
+                    {form.birthplace_region
+                      ? (REGIONS.find(r => r.value === form.birthplace_region)?.label ?? form.birthplace_region)
+                      : 'Tanlang…'}
+                  </button>
                 </Field>
 
                 <Field
@@ -633,6 +632,30 @@ export const AnketaPage: FC = () => {
           </div>
         </div>
       </form>
+
+      {regionOpen && (
+        <div className={s.sheetBackdrop} onClick={() => setRegionOpen(false)}>
+          <div className={s.sheet} onClick={e => e.stopPropagation()}>
+            <h2 className={s.sheetTitle}>Tug‘ilgan joyi</h2>
+            <div className={s.options}>
+              {REGIONS.map(r => {
+                const active = form.birthplace_region === r.value;
+                return (
+                  <button
+                    key={r.value}
+                    type="button"
+                    className={active ? `${s.option} ${s.optionActive}` : s.option}
+                    onClick={() => { setField('birthplace_region', r.value); setRegionOpen(false); }}
+                  >
+                    {r.label}
+                    {active && <span className={s.optionCheck} aria-hidden>✓</span>}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+      )}
     </Page>
   );
 };
