@@ -10,7 +10,7 @@ import { apiGet } from '@/api/client';
 import s from '@/pages/ChatPage/ChatPage.module.css';
 
 type Meta = { user?: { name: string; username: string }; labels?: string[] };
-type ChatsPayload = { items: { telegram_id: number; labels: string[] }[]; all_labels?: string[] };
+type InfiniteChats = { pages: { items: { telegram_id: number; labels: string[] }[] }[] };
 
 function TagIcon() {
   return (
@@ -39,14 +39,17 @@ export const AdminChatThreadPage: FC = () => {
   }, []);
 
   // reflect a label change back onto the chat-list cache so the inbox shows the
-  // up-to-date labels without waiting for its next poll
+  // up-to-date labels without waiting for its next poll (across all paged variants)
   function patchListLabels(next: string[]) {
-    queryClient.setQueryData<ChatsPayload>(['admin-chats'], (old) =>
-      old
+    const id = Number(telegramId);
+    queryClient.setQueriesData<InfiniteChats>({ queryKey: ['admin-chats'] }, (old) =>
+      old?.pages
         ? {
             ...old,
-            items: old.items.map(it =>
-              it.telegram_id === Number(telegramId) ? { ...it, labels: next } : it),
+            pages: old.pages.map(p => ({
+              ...p,
+              items: p.items.map(it => (it.telegram_id === id ? { ...it, labels: next } : it)),
+            })),
           }
         : old);
   }

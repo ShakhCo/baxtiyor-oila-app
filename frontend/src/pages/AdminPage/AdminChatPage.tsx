@@ -1,6 +1,6 @@
 import { useEffect, useLayoutEffect, useRef, useState, type FC } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useInfiniteQuery, useQuery, useQueryClient } from '@tanstack/react-query';
 
 import { Page } from '@/components/Page.tsx';
 import { LabelSheet } from '@/components/LabelSheet/LabelSheet';
@@ -9,7 +9,10 @@ import { apiGet, apiPost } from '@/api/client';
 import s from './AdminChatPage.module.css';
 import sheet from '@/pages/ChatPage/ChatPage.module.css';
 
+const PAGE_SIZE = 15;
 const LONG_PRESS_MS = 450;
+const CHATS_KEY = 'admin-chats';
+const LABELS_KEY = ['admin-labels'] as const;
 
 type Item = {
   telegram_id: number;
@@ -21,14 +24,10 @@ type Item = {
   unread: number;
   labels: string[];
 };
+type ChatsPage = { items: Item[]; has_more: boolean; total: number };
+type InfiniteChats = { pages: ChatsPage[]; pageParams: number[] };
 
-type ChatsPayload = { items: Item[]; all_labels?: string[] };
-
-const CHATS_KEY = ['admin-chats'] as const;
-/** How long the inbox is reused before a refetch. */
-const CHATS_STALE_MS = 15_000;
-
-// UI state remembered across navigation (data itself is cached by React Query).
+// UI state remembered across navigation (the data itself is cached by React Query).
 let cachedScrollY = 0;
 let cachedFilter: string | null = null;
 let cachedSearch = '';
@@ -37,17 +36,14 @@ function initials(name: string): string {
   return name.trim().split(/\s+/).slice(0, 2).map(w => w[0]).join('').toUpperCase() || '?';
 }
 
-// Uzbek short month names (Intl's uz-UZ data is unreliable in TG webviews).
 const UZ_MONTHS = ['Yan', 'Fev', 'Mar', 'Apr', 'May', 'Iyun', 'Iyul', 'Avg', 'Sen', 'Okt', 'Noy', 'Dek'];
 
 function timeLabel(iso: string): string {
   const d = new Date(iso);
   const today = new Date();
-  const sameDay = d.toDateString() === today.toDateString();
-  if (sameDay) {
+  if (d.toDateString() === today.toDateString()) {
     return d.toLocaleTimeString('uz-UZ', { hour: '2-digit', minute: '2-digit' });
   }
-  // e.g. "Iyun 21"; include the year only when it isn't the current one
   const base = `${UZ_MONTHS[d.getMonth()]} ${d.getDate()}`;
   return d.getFullYear() === today.getFullYear() ? base : `${base}, ${d.getFullYear()}`;
 }
@@ -70,24 +66,22 @@ function SendIcon() {
   );
 }
 
-function Chevron({ up }: { up: boolean }) {
+function ArrowUpIcon() {
   return (
     <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden>
-      <path d={up ? 'M6 15 L12 9 L18 15' : 'M6 9 L12 15 L18 9'}
-        stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M6 15 L12 9 L18 15" stroke="currentColor" strokeWidth="2.2"
+        strokeLinecap="round" strokeLinejoin="round" />
     </svg>
   );
 }
 
-// Custom smooth scroll with a fixed (fast) duration — native `smooth` crawls
-// over the full height of a 700+ row list.
-function fastScrollTo(targetY: number, duration = 480) {
+function fastScrollTo(targetY: number, duration = 420) {
   const startY = window.scrollY;
   const dist = targetY - startY;
   const start = performance.now();
   function step(now: number) {
     const t = Math.min(1, (now - start) / duration);
-    const ease = 1 - Math.pow(1 - t, 3); // easeOutCubic
+    const ease = 1 - Math.pow(1 - t, 3);
     window.scrollTo(0, startY + dist * ease);
     if (t < 1) requestAnimationFrame(step);
   }
@@ -98,41 +92,66 @@ export const AdminChatPage: FC = () => {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
 
-  const { data, isSuccess } = useQuery({
-    queryKey: CHATS_KEY,
-    queryFn: () => apiGet<ChatsPayload>('/admin/chats'),
-    staleTime: CHATS_STALE_MS,
-    refetchInterval: CHATS_STALE_MS,
-  });
-  const items = data?.items ?? [];
-  const allLabels = data?.all_labels ?? [];
-  const loaded = isSuccess;
-
   const [filter, setFilter] = useState<string | null>(cachedFilter);
+  const [search, setSearch] = useState(cachedSearch);
+  const [debouncedSearch, setDebouncedSearch] = useState(cachedSearch.trim());
+  const [searchOpen, setSearchOpen] = useState(cachedSearch.length > 0);
   const [adding, setAdding] = useState(false);
   const [draft, setDraft] = useState('');
   const [scrolledDown, setScrolledDown] = useState(false);
-  const [search, setSearch] = useState(cachedSearch);
-  const [searchOpen, setSearchOpen] = useState(cachedSearch.length > 0);
-  const searchRef = useRef<HTMLInputElement>(null);
   const [labelTarget, setLabelTarget] = useState<Item | null>(null);
+  const searchRef = useRef<HTMLInputElement>(null);
+  const sentinelRef = useRef<HTMLDivElement>(null);
   const pressTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const longPressedRef = useRef(false);
 
-  // Long-press a row to assign labels without opening the chat.
-  function startPress(it: Item) {
-    longPressedRef.current = false;
-    pressTimer.current = setTimeout(() => {
-      longPressedRef.current = true;
-      setLabelTarget(it);
-    }, LONG_PRESS_MS);
-  }
-  function endPress() {
-    if (pressTimer.current) { clearTimeout(pressTimer.current); pressTimer.current = null; }
-  }
+  // global labels live in their own query so the chat pages don't re-fetch them
+  const labelsQuery = useQuery({
+    queryKey: LABELS_KEY,
+    queryFn: () => apiGet<{ labels: string[] }>('/admin/labels'),
+    staleTime: 30_000,
+  });
+  const allLabels = labelsQuery.data?.labels ?? [];
+
+  // debounce the (server-side) search so we don't query on every keystroke
+  useEffect(() => {
+    const t = setTimeout(() => setDebouncedSearch(search.trim()), 350);
+    return () => clearTimeout(t);
+  }, [search]);
+
+  const chats = useInfiniteQuery({
+    queryKey: [CHATS_KEY, filter ?? '', debouncedSearch],
+    queryFn: ({ pageParam }) => {
+      const params = new URLSearchParams({ offset: String(pageParam), limit: String(PAGE_SIZE) });
+      if (filter) params.set('label', filter);
+      if (debouncedSearch) params.set('q', debouncedSearch);
+      return apiGet<ChatsPage>(`/admin/chats?${params.toString()}`);
+    },
+    initialPageParam: 0,
+    getNextPageParam: (last, all) => (last.has_more ? all.length * PAGE_SIZE : undefined),
+    staleTime: 15_000,
+    refetchInterval: 15_000,
+  });
+
+  const items = chats.data?.pages.flatMap(p => p.items) ?? [];
+  const total = chats.data?.pages[0]?.total ?? 0;
+  const loaded = !!chats.data;
+
+  // load the next page when the sentinel scrolls into view
+  useEffect(() => {
+    const el = sentinelRef.current;
+    if (!el) return;
+    const io = new IntersectionObserver((entries) => {
+      if (entries[0].isIntersecting && chats.hasNextPage && !chats.isFetchingNextPage) {
+        chats.fetchNextPage();
+      }
+    }, { rootMargin: '400px' });
+    io.observe(el);
+    return () => io.disconnect();
+  }, [chats.hasNextPage, chats.isFetchingNextPage, chats.fetchNextPage, items.length]);
 
   useEffect(() => {
-    const onScroll = () => setScrolledDown(window.scrollY > 500);
+    const onScroll = () => setScrolledDown(window.scrollY > 600);
     window.addEventListener('scroll', onScroll, { passive: true });
     return () => window.removeEventListener('scroll', onScroll);
   }, []);
@@ -140,38 +159,10 @@ export const AdminChatPage: FC = () => {
   useEffect(() => { if (searchOpen) searchRef.current?.focus(); }, [searchOpen]);
 
   function onSearch(v: string) { cachedSearch = v; setSearch(v); }
-
-  function toggleScroll() {
-    fastScrollTo(scrolledDown ? 0 : document.documentElement.scrollHeight);
-  }
-
-  const q = search.trim().toLowerCase();
-  const shown = items.filter(i => {
-    if (filter && !(i.labels ?? []).includes(filter)) return false;
-    if (q && !(
-      i.name.toLowerCase().includes(q) ||
-      (i.username ?? '').toLowerCase().includes(q) ||
-      String(i.telegram_id).includes(q)
-    )) return false;
-    return true;
-  });
-
-  function selectFilter(label: string | null) {
-    cachedFilter = label;
-    setFilter(label);
-  }
+  function selectFilter(label: string | null) { cachedFilter = label; setFilter(label); }
 
   function patchLabels(labels: string[]) {
-    queryClient.setQueryData<ChatsPayload>(CHATS_KEY, (prev) =>
-      prev ? { ...prev, all_labels: labels } : prev);
-  }
-
-  // update one row's labels in the cached list (after assigning via long-press)
-  function patchItemLabels(id: number, labels: string[]) {
-    queryClient.setQueryData<ChatsPayload>(CHATS_KEY, (prev) =>
-      prev
-        ? { ...prev, items: prev.items.map(it => (it.telegram_id === id ? { ...it, labels } : it)) }
-        : prev);
+    queryClient.setQueryData<{ labels: string[] }>(LABELS_KEY, { labels });
   }
 
   async function addLabel() {
@@ -186,7 +177,31 @@ export const AdminChatPage: FC = () => {
     } catch { /* keep optimistic */ }
   }
 
-  // restore the scroll position we left on, and remember it when leaving
+  // update one row's labels everywhere it's cached (across filter/search variants)
+  function patchItemLabels(id: number, labels: string[]) {
+    queryClient.setQueriesData<InfiniteChats>({ queryKey: [CHATS_KEY] }, (old) =>
+      old?.pages
+        ? {
+            ...old,
+            pages: old.pages.map(p => ({
+              ...p,
+              items: p.items.map(it => (it.telegram_id === id ? { ...it, labels } : it)),
+            })),
+          }
+        : old);
+  }
+
+  function startPress(it: Item) {
+    longPressedRef.current = false;
+    pressTimer.current = setTimeout(() => {
+      longPressedRef.current = true;
+      setLabelTarget(it);
+    }, LONG_PRESS_MS);
+  }
+  function endPress() {
+    if (pressTimer.current) { clearTimeout(pressTimer.current); pressTimer.current = null; }
+  }
+
   useLayoutEffect(() => {
     if (cachedScrollY) window.scrollTo(0, cachedScrollY);
     return () => { cachedScrollY = window.scrollY; };
@@ -206,7 +221,7 @@ export const AdminChatPage: FC = () => {
         <header className={s.header}>
           <div>
             <p className={s.eyebrow}>
-              {loaded ? `${items.length.toLocaleString('uz-UZ')} foydalanuvchi` : 'Foydalanuvchilar'}
+              {loaded ? `${total.toLocaleString('uz-UZ')} foydalanuvchi` : 'Foydalanuvchilar'}
             </p>
             <h1 className={s.title}>Suhbatlar</h1>
           </div>
@@ -220,53 +235,51 @@ export const AdminChatPage: FC = () => {
           </button>
         </header>
 
-        {loaded && (
-          <div className={s.filterBar}>
-            <div
-              className={searchOpen ? `${s.search} ${s.searchOpen}` : s.search}
-              onClick={() => { if (!searchOpen) setSearchOpen(true); }}
-            >
-              <span className={s.searchIcon}><SearchIcon /></span>
-              <input
-                ref={searchRef}
-                className={s.searchInput}
-                value={search}
-                onChange={e => onSearch(e.target.value)}
-                onBlur={() => { if (!search.trim()) setSearchOpen(false); }}
-                onKeyDown={e => {
-                  if (e.key === 'Enter') searchRef.current?.blur();
-                  if (e.key === 'Escape') { onSearch(''); setSearchOpen(false); searchRef.current?.blur(); }
-                }}
-                placeholder="Qidirish…"
-              />
-            </div>
-            <button
-              type="button"
-              className={!filter ? `${s.filterChip} ${s.filterActive}` : s.filterChip}
-              onClick={() => selectFilter(null)}
-            >
-              Hammasi
-            </button>
-            {allLabels.map(l => (
-              <button
-                key={l}
-                type="button"
-                className={filter === l ? `${s.filterChip} ${s.filterActive}` : s.filterChip}
-                onClick={() => selectFilter(l)}
-              >
-                {l}
-              </button>
-            ))}
-            <button
-              type="button"
-              className={s.filterAdd}
-              onClick={() => setAdding(true)}
-              aria-label="Belgi qo‘shish"
-            >
-              +
-            </button>
+        <div className={s.filterBar}>
+          <div
+            className={searchOpen ? `${s.search} ${s.searchOpen}` : s.search}
+            onClick={() => { if (!searchOpen) setSearchOpen(true); }}
+          >
+            <span className={s.searchIcon}><SearchIcon /></span>
+            <input
+              ref={searchRef}
+              className={s.searchInput}
+              value={search}
+              onChange={e => onSearch(e.target.value)}
+              onBlur={() => { if (!search.trim()) setSearchOpen(false); }}
+              onKeyDown={e => {
+                if (e.key === 'Enter') searchRef.current?.blur();
+                if (e.key === 'Escape') { onSearch(''); setSearchOpen(false); searchRef.current?.blur(); }
+              }}
+              placeholder="Qidirish…"
+            />
           </div>
-        )}
+          <button
+            type="button"
+            className={!filter ? `${s.filterChip} ${s.filterActive}` : s.filterChip}
+            onClick={() => selectFilter(null)}
+          >
+            Hammasi
+          </button>
+          {allLabels.map(l => (
+            <button
+              key={l}
+              type="button"
+              className={filter === l ? `${s.filterChip} ${s.filterActive}` : s.filterChip}
+              onClick={() => selectFilter(l)}
+            >
+              {l}
+            </button>
+          ))}
+          <button
+            type="button"
+            className={s.filterAdd}
+            onClick={() => setAdding(true)}
+            aria-label="Belgi qo‘shish"
+          >
+            +
+          </button>
+        </div>
 
         <div className={s.list}>
           {!loaded ? (
@@ -279,61 +292,75 @@ export const AdminChatPage: FC = () => {
                 </span>
               </div>
             ))
-          ) : shown.length === 0 ? (
+          ) : items.length === 0 ? (
             <p className={s.empty}>
-              {q
-                ? `“${search.trim()}” bo‘yicha hech narsa topilmadi.`
+              {debouncedSearch
+                ? `“${debouncedSearch}” bo‘yicha hech narsa topilmadi.`
                 : filter
                   ? `“${filter}” belgili foydalanuvchi yo‘q.`
                   : 'Hozircha suhbatlar yo‘q.'}
             </p>
           ) : (
-            shown.map(it => (
-              <button
-                key={it.telegram_id}
-                type="button"
-                className={s.item}
-                onPointerDown={() => startPress(it)}
-                onPointerUp={endPress}
-                onPointerCancel={endPress}
-                onPointerLeave={endPress}
-                onContextMenu={e => e.preventDefault()}
-                onClick={() => {
-                  if (longPressedRef.current) { longPressedRef.current = false; return; }
-                  openChat(it.telegram_id);
-                }}
-              >
-                <span className={s.avatar} aria-hidden>{initials(it.name)}</span>
-                <span className={s.main}>
-                  <span className={s.topline}>
-                    <span className={s.name}>{it.name}</span>
-                    <span className={s.time}>{timeLabel(it.updated_at)}</span>
-                  </span>
-                  <span className={s.previewLine}>
-                    <span className={s.preview}>
-                      {it.last_sender === 'admin' ? 'Siz: ' : ''}{it.last_message || '—'}
+            <>
+              {items.map(it => (
+                <button
+                  key={it.telegram_id}
+                  type="button"
+                  className={s.item}
+                  onPointerDown={() => startPress(it)}
+                  onPointerUp={endPress}
+                  onPointerCancel={endPress}
+                  onPointerLeave={endPress}
+                  onContextMenu={e => e.preventDefault()}
+                  onClick={() => {
+                    if (longPressedRef.current) { longPressedRef.current = false; return; }
+                    openChat(it.telegram_id);
+                  }}
+                >
+                  <span className={s.avatar} aria-hidden>{initials(it.name)}</span>
+                  <span className={s.main}>
+                    <span className={s.topline}>
+                      <span className={s.name}>{it.name}</span>
+                      <span className={s.time}>{timeLabel(it.updated_at)}</span>
                     </span>
-                    {it.unread > 0 && <span className={s.badge}>{it.unread}</span>}
-                  </span>
-                  {(it.labels?.length ?? 0) > 0 && (
-                    <span className={s.labels}>
-                      {it.labels.map(l => <span key={l} className={s.label}>{l}</span>)}
+                    <span className={s.previewLine}>
+                      <span className={s.preview}>
+                        {it.last_sender === 'admin' ? 'Siz: ' : ''}{it.last_message || '—'}
+                      </span>
+                      {it.unread > 0 && <span className={s.badge}>{it.unread}</span>}
                     </span>
-                  )}
-                </span>
-              </button>
-            ))
+                    {(it.labels?.length ?? 0) > 0 && (
+                      <span className={s.labels}>
+                        {it.labels.map(l => <span key={l} className={s.label}>{l}</span>)}
+                      </span>
+                    )}
+                  </span>
+                </button>
+              ))}
+
+              {/* infinite-scroll trigger + loading rows */}
+              <div ref={sentinelRef} aria-hidden />
+              {chats.isFetchingNextPage && Array.from({ length: 3 }).map((_, i) => (
+                <div className={s.skel} key={`more-${i}`} aria-hidden>
+                  <span className={s.skelAvatar} />
+                  <span className={s.skelMain}>
+                    <span className={s.skelLineWide} />
+                    <span className={s.skelLine} />
+                  </span>
+                </div>
+              ))}
+            </>
           )}
         </div>
 
-        {loaded && shown.length > 8 && (
+        {scrolledDown && (
           <button
             type="button"
             className={s.scrollBtn}
-            onClick={toggleScroll}
-            aria-label={scrolledDown ? 'Tepaga' : 'Pastga'}
+            onClick={() => fastScrollTo(0)}
+            aria-label="Tepaga"
           >
-            <Chevron up={scrolledDown} />
+            <ArrowUpIcon />
           </button>
         )}
 

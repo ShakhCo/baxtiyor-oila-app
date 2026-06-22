@@ -1,4 +1,4 @@
-from django.db.models import Case, F, IntegerField, Max, Value, When
+from django.db.models import Case, F, IntegerField, Max, Q, Value, When
 from django.db.models.functions import Coalesce
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
@@ -37,20 +37,44 @@ def _display_name(u: User) -> str:
 @api_view(["GET"])
 @permission_classes([IsAdmin])
 def list_conversations(request):
-    """Inbox of all users — ordered by most recent chat activity, then join date.
-    Users who have never chatted still appear (sorted by join date)."""
+    """Paginated inbox — ordered by most recent chat activity, then join date.
+    Loads a page at a time (?offset, ?limit) for scroll-based loading, with
+    optional ?label and ?q (name / username / id) filtering done server-side."""
+    qp = request.query_params
+    try:
+        offset = max(0, int(qp.get("offset", 0)))
+        limit = min(50, max(1, int(qp.get("limit", 15))))
+    except (TypeError, ValueError):
+        offset, limit = 0, 15
+    q = (qp.get("q") or "").strip()
+    label = (qp.get("label") or "").strip()
+
     # Sort by the last *message* time (not conversation creation), so just opening
     # a chat — which creates an empty conversation — never reorders the list.
+    # telegram_id is a stable tiebreaker so paging never skips/duplicates rows.
     users = (
         User.objects
         .select_related("conversation")
         .annotate(last_msg=Max("conversation__messages__created_at"))
         .annotate(sort_key=Coalesce(F("last_msg"), F("created_at")))
-        .order_by("-sort_key")
     )
+    if label:
+        users = users.filter(conversation__labels__contains=[label])
+    if q:
+        cond = Q(username__icontains=q) | Q(first_name__icontains=q) | Q(last_name__icontains=q)
+        if q.isdigit():
+            cond |= Q(telegram_id=int(q))
+        users = users.filter(cond)
+
+    users = users.order_by("-sort_key", "-telegram_id")
+
+    # fetch one extra row to know whether another page exists
+    page = list(users[offset:offset + limit + 1])
+    has_more = len(page) > limit
+    page = page[:limit]
 
     items = []
-    for u in users:
+    for u in page:
         conv = getattr(u, "conversation", None)
         last = conv.messages.last() if conv else None
         unread = 0
@@ -72,8 +96,8 @@ def list_conversations(request):
         })
     return Response({
         "items": items,
-        "total": len(items),
-        "total_unread": sum(i["unread"] for i in items),
+        "has_more": has_more,
+        "total": User.objects.count(),
         "all_labels": _all_label_names(),
     })
 
