@@ -61,6 +61,15 @@ function SearchIcon() {
   );
 }
 
+function SendIcon() {
+  return (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden>
+      <path d="M21 3 L11 13 M21 3 L14.5 21 L11 13 L3 9.5 Z"
+        stroke="currentColor" strokeWidth="1.7" strokeLinejoin="round" strokeLinecap="round" />
+    </svg>
+  );
+}
+
 function Chevron({ up }: { up: boolean }) {
   return (
     <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden>
@@ -195,10 +204,20 @@ export const AdminChatPage: FC = () => {
         <div className={s.fadeBottom} aria-hidden />
 
         <header className={s.header}>
-          <p className={s.eyebrow}>
-            {loaded ? `${items.length.toLocaleString('uz-UZ')} foydalanuvchi` : 'Foydalanuvchilar'}
-          </p>
-          <h1 className={s.title}>Suhbatlar</h1>
+          <div>
+            <p className={s.eyebrow}>
+              {loaded ? `${items.length.toLocaleString('uz-UZ')} foydalanuvchi` : 'Foydalanuvchilar'}
+            </p>
+            <h1 className={s.title}>Suhbatlar</h1>
+          </div>
+          <button
+            type="button"
+            className={s.broadcastBtn}
+            onClick={() => navigate('/admin/broadcast')}
+            aria-label="Ommaviy xabar"
+          >
+            <SendIcon />
+          </button>
         </header>
 
         {loaded && (

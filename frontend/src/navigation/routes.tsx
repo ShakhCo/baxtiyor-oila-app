@@ -5,6 +5,7 @@ import { AdminChatPage } from '@/pages/AdminPage/AdminChatPage';
 import { AdminChatThreadPage } from '@/pages/AdminPage/AdminChatThreadPage';
 import { AdminPage } from '@/pages/AdminPage/AdminPage';
 import { AnketaPage } from '@/pages/AnketaPage/AnketaPage';
+import { BroadcastPage } from '@/pages/BroadcastPage/BroadcastPage';
 import { ChatPage } from '@/pages/ChatPage/ChatPage';
 import { IndexPage } from '@/pages/IndexPage/IndexPage';
 import { InitDataPage } from '@/pages/InitDataPage.tsx';
@@ -27,6 +28,7 @@ export const routes: Route[] = [
   { path: '/admin/anketa/:telegramId', Component: AdminAnketaDetailPage, title: 'Anketa' },
   { path: '/admin/chat', Component: AdminChatPage, title: 'Suhbatlar' },
   { path: '/admin/chat/:telegramId', Component: AdminChatThreadPage, title: 'Suhbat' },
+  { path: '/admin/broadcast', Component: BroadcastPage, title: 'Ommaviy xabar' },
   { path: '/init-data', Component: InitDataPage, title: 'Init Data' },
   { path: '/theme-params', Component: ThemeParamsPage, title: 'Theme Params' },
   { path: '/launch-params', Component: LaunchParamsPage, title: 'Launch Params' },

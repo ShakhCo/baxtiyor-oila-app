@@ -42,6 +42,32 @@ class Label(models.Model):
         return self.name
 
 
+class Broadcast(models.Model):
+    """A one-off message sent to every user. Processed in the background; the
+    counters are updated as it runs so admins can watch progress and see the
+    final tally (delivered vs failed)."""
+
+    PENDING = "pending"
+    RUNNING = "running"
+    DONE = "done"
+    STATUS_CHOICES = [(PENDING, "pending"), (RUNNING, "running"), (DONE, "done")]
+
+    text = models.TextField()
+    created_by = models.BigIntegerField(null=True, blank=True)  # admin telegram_id
+    status = models.CharField(max_length=12, choices=STATUS_CHOICES, default=PENDING)
+    total = models.IntegerField(default=0)
+    sent = models.IntegerField(default=0)
+    failed = models.IntegerField(default=0)
+    created_at = models.DateTimeField(auto_now_add=True)
+    finished_at = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+
+    def __str__(self) -> str:
+        return f"Broadcast<{self.id} {self.status} {self.sent}/{self.total}>"
+
+
 class Message(models.Model):
     USER = "user"
     ADMIN = "admin"

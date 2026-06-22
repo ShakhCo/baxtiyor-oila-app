@@ -8,8 +8,22 @@ from rest_framework.response import Response
 
 from accounts.models import User
 from accounts.permissions import IsAdmin
-from chat.models import Conversation, Label, Message
+from chat.broadcast import start_broadcast
+from chat.models import Broadcast, Conversation, Label, Message
 from chat.views import MAX_LEN, _messages_after, serialize_message
+
+
+def serialize_broadcast(b: Broadcast) -> dict:
+    return {
+        "id": b.id,
+        "text": b.text,
+        "status": b.status,
+        "total": b.total,
+        "sent": b.sent,
+        "failed": b.failed,
+        "created_at": b.created_at.isoformat(),
+        "finished_at": b.finished_at.isoformat() if b.finished_at else None,
+    }
 
 
 def _all_label_names() -> list[str]:
@@ -62,6 +76,25 @@ def list_conversations(request):
         "total_unread": sum(i["unread"] for i in items),
         "all_labels": _all_label_names(),
     })
+
+
+@api_view(["GET", "POST"])
+@permission_classes([IsAdmin])
+def broadcasts(request):
+    """List recent broadcasts (with live counts), or start a new one (POST {text})."""
+    if request.method == "POST":
+        text = (request.data.get("text") or "").strip()
+        if not text:
+            return Response({"detail": "Xabar bo‘sh."}, status=http_status.HTTP_400_BAD_REQUEST)
+        bc = Broadcast.objects.create(
+            text=text[:MAX_LEN],
+            created_by=getattr(request.user, "telegram_id", None),
+        )
+        start_broadcast(bc.id)
+        return Response(serialize_broadcast(bc), status=http_status.HTTP_201_CREATED)
+
+    items = [serialize_broadcast(b) for b in Broadcast.objects.all()[:20]]
+    return Response({"items": items, "user_count": User.objects.count()})
 
 
 @api_view(["GET", "POST"])
