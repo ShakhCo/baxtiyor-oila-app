@@ -274,14 +274,16 @@
   animation: anketaSheetFade 0.18s ease both;
 }
 
+/* the sheet renders OUTSIDE .root, so the --surface/--text vars aren't in scope
+   here — use literal colors so the panel is opaque (matches the form palette). */
 .sheet {
   width: 100%;
   box-sizing: border-box;
   display: flex;
   flex-direction: column;
   max-height: 78vh;
-  background: var(--surface);
-  border-top: 1px solid var(--line-2);
+  background: #16120d;
+  border-top: 1px solid rgba(233, 222, 198, 0.18);
   border-radius: 22px 22px 0 0;
   padding: 20px 18px calc(var(--tg-viewport-safe-area-inset-bottom, 0px) + 18px);
   animation: anketaSheetUp 0.24s cubic-bezier(0.2, 0.8, 0.2, 1) both;
@@ -292,7 +294,7 @@
   font-family: 'Cormorant Garamond', 'Times New Roman', serif;
   font-size: 24px;
   font-weight: 600;
-  color: var(--text);
+  color: #ece2c8;
 }
 
 .options {
@@ -312,10 +314,10 @@
   justify-content: space-between;
   gap: 10px;
   padding: 14px 15px;
-  background: var(--surface-2);
-  border: 1px solid var(--line);
+  background: #1d180f;
+  border: 1px solid rgba(233, 222, 198, 0.10);
   border-radius: 12px;
-  color: var(--text);
+  color: #ece2c8;
   font-family: inherit;
   font-size: 16px;
   cursor: pointer;
@@ -326,12 +328,12 @@
 .option:active { background: #241d12; }
 
 .optionActive {
-  border-color: var(--gold);
+  border-color: #c89b54;
   background: rgba(200, 155, 84, 0.12);
-  color: var(--gold-2);
+  color: #d8b06a;
 }
 
-.optionCheck { flex: none; color: var(--gold); font-weight: 700; }
+.optionCheck { flex: none; color: #c89b54; font-weight: 700; }
 
 @keyframes anketaSheetFade { from { opacity: 0; } to { opacity: 1; } }
 @keyframes anketaSheetUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
