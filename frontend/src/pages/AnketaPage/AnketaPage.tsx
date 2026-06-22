@@ -347,6 +347,7 @@ export const AnketaPage: FC = () => {
   return (
     <Page back={false}>
       <form className={s.root} onSubmit={onSubmit} onFocus={onFormFocus} noValidate>
+        <div className={s.fadeTop} aria-hidden />
         <div className={s.content}>
           <header className={s.formHeader}>
             <h1 className={s.stepTitle}>{currentStep.title}</h1>

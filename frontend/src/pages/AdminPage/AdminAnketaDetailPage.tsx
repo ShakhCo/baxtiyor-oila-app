@@ -4,7 +4,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { Page } from '@/components/Page.tsx';
 import { apiGet, apiPost } from '@/api/client';
 
-import s from './AdminPage.module.css';
+import s from './AnketaDetailPage.module.css';
 
 type Status = 'pending' | 'approved' | 'rejected';
 
@@ -124,74 +124,75 @@ export const AdminAnketaDetailPage: FC = () => {
 
   return (
     <Page>
-      <div className={s.root}>
-        <div className={s.content}>
-          <header className={s.detailHeader}>
-            <h1 className={s.detailName}>{data.full_name}</h1>
-            <div className={s.detailMeta}>
-              {data.age} yosh
-              {tgHandle && <> · <a href={`https://t.me/${data.username}`} target="_blank" rel="noreferrer">{tgHandle}</a></>}
-              <> · <span style={{ textTransform: 'uppercase', letterSpacing: '0.1em' }}>{data.tariff}</span></>
-            </div>
-            <div className={s.detailMeta} style={{ marginTop: 8 }}>
-              <span className={[
-                s.statusBadge,
-                data.status === 'pending'  ? s.badgePending :
-                data.status === 'approved' ? s.badgeApproved :
-                                              s.badgeRejected,
-              ].join(' ')}>
-                {data.status === 'pending' ? 'Yangi' : data.status === 'approved' ? 'Tasdiqlangan' : 'Rad etilgan'}
-              </span>
-            </div>
-          </header>
+      <div className={isPending ? s.root : `${s.root} ${s.rootFlat}`}>
+        <div className={s.fadeTop} aria-hidden />
+        <div className={s.fadeBottom} aria-hidden />
 
-          {error && <div className={s.errorBanner}>{error}</div>}
-
-          {data.status === 'rejected' && data.rejection_reason && (
-            <div className={s.section}>
-              <div className={s.sectionLabel} style={{ color: '#FFAE8E' }}>Rad etish sababi</div>
-              <div className={s.rowValue}>{data.rejection_reason}</div>
-            </div>
-          )}
-
-          <div className={s.section}>
-            <div className={s.sectionLabel}>I. O‘zi haqida</div>
-            <Row label="Tug‘ilgan joy">{region}</Row>
-            <Row label="Hozirgi joy (DE)">{data.current_residence_germany}</Row>
-            <Row label="Bo‘yi, vazni">{data.height_weight}</Row>
+        <header className={s.detailHeader}>
+          <p className={s.eyebrow}>Anketa</p>
+          <h1 className={s.name}>{data.full_name}</h1>
+          <div className={s.meta}>
+            {data.age} yosh
+            {tgHandle && <> · <a className={s.handle} href={`https://t.me/${data.username}`} target="_blank" rel="noreferrer">{tgHandle}</a></>}
+            <> · <span className={s.tariffText}>{data.tariff}</span></>
           </div>
-
-          <div className={s.section}>
-            <div className={s.sectionLabel}>II. Ma‘lumot va kasb</div>
-            <Row label="Ma‘lumoti">{data.education}</Row>
-            <Row label="Kasbi va xobbi">{data.profession_hobbies}</Row>
+          <div className={s.statusRow}>
+            <span className={`${s.badge} ${
+              data.status === 'pending'  ? s.badgePending :
+              data.status === 'approved' ? s.badgeApproved :
+                                            s.badgeRejected
+            }`}>
+              {data.status === 'pending' ? 'Yangi' : data.status === 'approved' ? 'Tasdiqlangan' : 'Rad etilgan'}
+            </span>
           </div>
+        </header>
 
-          <div className={s.section}>
-            <div className={s.sectionLabel}>III. Oila</div>
-            <Row label="Oilaviy holati">{data.marital_status}</Row>
-            <Row label="Oilada">{data.family_info}</Row>
-            <Row label="Millat / tillar">{data.nationality_languages}</Row>
-            <Row label="Din">{data.religion}</Row>
-          </div>
+        {error && <div className={s.error}>{error}</div>}
 
+        {data.status === 'rejected' && data.rejection_reason && (
           <div className={s.section}>
-            <div className={s.sectionLabel}>IV. Germaniya</div>
-            <Row label="Status va rejalar">{data.germany_status}</Row>
+            <div className={`${s.sectionLabel} ${s.sectionLabelWarn}`}>Rad etish sababi</div>
+            <div className={s.rowValue}>{data.rejection_reason}</div>
           </div>
+        )}
 
-          <div className={s.section}>
-            <div className={s.sectionLabel}>V. Shaxsiyat</div>
-            <Row label="O‘zi haqida">{data.self_description}</Row>
-            <Row label="Idealdagi juftlik">{data.partner_expectations}</Row>
-          </div>
+        <div className={s.section}>
+          <div className={s.sectionLabel}>I. O‘zi haqida</div>
+          <Row label="Tug‘ilgan joy">{region}</Row>
+          <Row label="Hozirgi joy (DE)">{data.current_residence_germany}</Row>
+          <Row label="Bo‘yi, vazni">{data.height_weight}</Row>
+        </div>
 
-          <div className={s.section}>
-            <div className={s.sectionLabel}>VI. Aloqa</div>
-            <Row label="Murojaat uchun">{data.contact_info}</Row>
-            <Row label="Telegram ID">{String(data.telegram_id)}</Row>
-            <Row label="Yuborilgan">{new Date(data.created_at).toLocaleString()}</Row>
-          </div>
+        <div className={s.section}>
+          <div className={s.sectionLabel}>II. Ma‘lumot va kasb</div>
+          <Row label="Ma‘lumoti">{data.education}</Row>
+          <Row label="Kasbi va xobbi">{data.profession_hobbies}</Row>
+        </div>
+
+        <div className={s.section}>
+          <div className={s.sectionLabel}>III. Oila</div>
+          <Row label="Oilaviy holati">{data.marital_status}</Row>
+          <Row label="Oilada">{data.family_info}</Row>
+          <Row label="Millat / tillar">{data.nationality_languages}</Row>
+          <Row label="Din">{data.religion}</Row>
+        </div>
+
+        <div className={s.section}>
+          <div className={s.sectionLabel}>IV. Germaniya</div>
+          <Row label="Status va rejalar">{data.germany_status}</Row>
+        </div>
+
+        <div className={s.section}>
+          <div className={s.sectionLabel}>V. Shaxsiyat</div>
+          <Row label="O‘zi haqida">{data.self_description}</Row>
+          <Row label="Idealdagi juftlik">{data.partner_expectations}</Row>
+        </div>
+
+        <div className={s.section}>
+          <div className={s.sectionLabel}>VI. Aloqa</div>
+          <Row label="Murojaat uchun">{data.contact_info}</Row>
+          <Row label="Telegram ID">{String(data.telegram_id)}</Row>
+          <Row label="Yuborilgan">{new Date(data.created_at).toLocaleString()}</Row>
         </div>
 
         {isPending && (

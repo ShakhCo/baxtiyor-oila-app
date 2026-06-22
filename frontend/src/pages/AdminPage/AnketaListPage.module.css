@@ -42,7 +42,7 @@
   align-items: flex-end;
   justify-content: space-between;
   gap: 12px;
-  padding: 2px 0 10px;
+  padding: 2px 0 4px;
 }
 
 .eyebrow {
@@ -59,6 +59,7 @@
   font-family: 'Cormorant Garamond', 'Times New Roman', serif;
   font-size: 30px;
   font-weight: 500;
+  line-height: 1.05;
   letter-spacing: -0.01em;
   color: #ece2c8;
 }
@@ -87,8 +88,10 @@
   display: flex;
   gap: 8px;
   overflow-x: auto;
-  margin: 0 -18px 10px;
-  padding: 6px 18px;
+  /* small top buffer (closer to the title), solid bottom buffer so list rows
+     never touch the pills when they scroll under the sticky bar */
+  margin: 0 -18px 8px;
+  padding: 2px 18px 12px;
   background: #0d0b08;
   scrollbar-width: none;
   -webkit-overflow-scrolling: touch;
