@@ -6,7 +6,9 @@
   color: #ece2c8;
   font-family: 'Manrope', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
   -webkit-font-smoothing: antialiased;
-  overflow-x: hidden;
+  /* NOTE: never set overflow-x here — it makes .root a scroll container and
+     breaks the sticky filter tabs (they'd pin to .root and the list slides
+     underneath them). The cards truncate, so there's no horizontal overflow. */
   padding-top: calc(var(--tg-viewport-safe-area-inset-top, 0px) + var(--tg-viewport-content-safe-area-inset-top, 0px) + 20px);
   padding-right: calc(var(--tg-viewport-content-safe-area-inset-right, 0px) + 18px);
   padding-bottom: calc(var(--tg-viewport-safe-area-inset-bottom, 0px) + 32px);
