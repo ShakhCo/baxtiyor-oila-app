@@ -129,12 +129,13 @@
   gap: 6px;
 }
 
-/* delivery-failed marker on the admin's own (broadcast) messages */
+/* delivery-failed marker — sits on the rose/accent bubble (sender's own
+   message), so a dark red is unreadable; use a light warning tint instead */
 .failed {
   font-size: 13px;
   font-weight: 700;
   letter-spacing: 0.01em;
-  color: #cf3a2a;
+  color: #ffd7d7;
 }
 
 .time {
