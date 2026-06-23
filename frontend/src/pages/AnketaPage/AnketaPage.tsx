@@ -608,18 +608,14 @@ export const AnketaPage: FC = () => {
                   </div>
                 </Field>
           </section>
-        </div>
 
-        <div className={s.navBar}>
-          <div className={s.navRow}>
-            <button
-              type="submit"
-              className={s.submitButton}
-              disabled={!allValid || submitting}
-            >
-              {submitting ? 'Yuborilmoqda…' : 'Anketani yuborish'}
-            </button>
-          </div>
+          <button
+            type="submit"
+            className={s.submitButton}
+            disabled={!allValid || submitting}
+          >
+            {submitting ? 'Yuborilmoqda…' : 'Anketani yuborish'}
+          </button>
         </div>
       </form>
 

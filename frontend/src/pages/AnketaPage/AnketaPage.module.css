@@ -41,15 +41,6 @@
   padding-left: calc(var(--tg-viewport-content-safe-area-inset-left, 0px) + 22px);
 }
 
-.root::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  z-index: -1;
-  pointer-events: none;
-  background: radial-gradient(120% 32% at 50% 0%, rgba(179, 79, 99, 0.09), transparent 60%);
-}
-
 .content {
   position: relative;
   max-width: 560px;
@@ -68,10 +59,10 @@
 .stepTitle {
   margin: 0 0 6px;
   font-family: inherit;
-  font-size: 32px;
+  font-size: 21px;
   font-weight: 800;
-  line-height: 1.06;
-  letter-spacing: -0.01em;
+  line-height: 1.15;
+  letter-spacing: -0.015em;
   color: var(--text);
 }
 
@@ -82,83 +73,50 @@
   color: var(--text-soft);
 }
 
+/* intention — a soft blush card (matches the home hadith card), on white */
 .mission {
-  position: relative;
-  margin: 20px 0 4px;
-  padding: 18px 20px 20px;
-  background: var(--surface-2);
-  border: 1px solid var(--line);
-  border-radius: 14px;
-  overflow: hidden;
-}
-
-/* a quiet gold quotation glyph anchored top-right */
-.mission::after {
-  content: "\201D";
-  position: absolute;
-  top: 2px;
-  right: 14px;
-  font-family: inherit;
-  font-size: 60px;
-  line-height: 1;
-  color: var(--gold);
-  opacity: 0.18;
-  pointer-events: none;
+  margin: 22px 0 6px;
+  padding: 20px;
+  border-radius: 20px;
+  background: #fbe9ed;
 }
 
 .missionLabel {
-  display: inline-flex;
-  align-items: center;
-  gap: 9px;
-  font-size: 13px;
-  font-weight: 600;
-  letter-spacing: 0.2em;
-  text-transform: uppercase;
-  color: var(--gold);
+  display: block;
   margin-bottom: 9px;
-}
-
-.missionLabel::before {
-  content: "";
-  width: 16px;
-  height: 1px;
-  background: var(--gold);
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--gold-2);
 }
 
 .missionText {
-  position: relative;
   margin: 0;
-  max-width: 34ch;
-  font-family: inherit;
-  font-style: italic;
-  font-size: 19px;
-  line-height: 1.4;
-  color: var(--text-soft);
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 1.5;
+  color: var(--text);
 }
 
 /* ───── fields ───── */
 /* opacity-only entrance — must NOT leave a transform on this element, as a
    transformed ancestor breaks the native <select> popup in Chromium/WebView. */
 .section {
-  /* bottom space so the last field clears the submit bar + the tab bar */
-  padding: 8px 0 calc(96px + var(--bottom-nav-h));
+  padding: 8px 0 24px;
   animation: sectionFade 360ms ease both;
 }
 
-/* group heading — a quiet rose divider that breaks the single long form into
-   readable sections (not steps; everything stays on one page) */
+/* group heading — same clean dark heading as the home page section titles */
 .groupTitle {
-  margin: 32px 0 16px;
-  padding-bottom: 11px;
-  border-bottom: 1px solid rgba(40, 30, 16, 0.10);
-  font-size: 13px;
-  font-weight: 700;
-  letter-spacing: 0.10em;
-  text-transform: uppercase;
-  color: #9a3c52;
+  margin: 30px 0 14px;
+  font-size: 21px;
+  font-weight: 800;
+  letter-spacing: -0.015em;
+  color: var(--text);
 }
 
-.section > .groupTitle:first-of-type { margin-top: 8px; }
+.section > .groupTitle:first-of-type { margin-top: 14px; }
 
 .field {
   display: block;
@@ -540,21 +498,24 @@
 .backButton:hover { border-color: var(--gold); color: var(--text); }
 .backButton:active { transform: translateY(1px); }
 
+/* inline submit at the end of the form (not sticky); clears the bottom tab bar */
 .submitButton {
-  flex: 1;
+  width: 100%;
+  box-sizing: border-box;
+  margin: 8px 0 calc(var(--bottom-nav-h) + 24px);
   appearance: none;
   border: none;
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 8px;
-  padding: 16px 20px;
+  padding: 17px 20px;
   background: var(--gold);
   color: #ffffff;
-  border-radius: 13px;
+  border-radius: 14px;
   font-family: inherit;
   font-weight: 700;
-  font-size: 19px;
+  font-size: 17px;
   letter-spacing: 0.01em;
   cursor: pointer;
   transition: background 0.15s ease, transform 0.1s ease, opacity 0.15s ease;
