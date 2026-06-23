@@ -1,81 +1,8 @@
-// import { openTelegramLink } from '@tma.js/sdk-react'; // used by the (hidden) contact section
-import { useEffect, useRef, useState, type FC, type PropsWithChildren } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { type FC } from 'react';
 
 import { Page } from '@/components/Page.tsx';
 
 import s from './IndexPage.module.css';
-
-// const ADMIN_PRIMARY = 'BaxtiyorOila_admin';   // used by the (hidden) contact section
-// const ADMIN_SECONDARY = 'Babaeva_L_S';
-
-function Arrow() {
-  return (
-    <svg width="17" height="17" viewBox="0 0 18 18" aria-hidden>
-      <path
-        d="M3 9 H14 M10 5 L14 9 L10 13"
-        stroke="currentColor"
-        strokeWidth="1.6"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        fill="none"
-      />
-    </svg>
-  );
-}
-
-/** When (ms after load) scroll reveals may begin — held until the hero
- *  opening animation has finished so sections never reveal before the header. */
-const INTRO_MS = 1850;
-
-/** The logo zoom plays once per real page load. This module-level flag
- *  survives in-app navigation (component remounts) but resets on a full
- *  reload, so coming back from another page skips the opening animation. */
-let heroIntroPlayed = false;
-
-/** Section that fades + slides into view — never before the hero opening is
- *  done, and staggered by `index` so the sections cascade top-to-bottom. */
-function RevealSection({ index = 0, children }: PropsWithChildren<{ index?: number }>) {
-  const ref = useRef<HTMLElement | null>(null);
-  const [shown, setShown] = useState(false);
-
-  useEffect(() => {
-    const el = ref.current;
-    if (!el) return;
-    const reduceMotion =
-      window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false;
-    if (reduceMotion || typeof IntersectionObserver === 'undefined') {
-      setShown(true);
-      return;
-    }
-    let timer: ReturnType<typeof setTimeout> | undefined;
-    const io = new IntersectionObserver(
-      ([entry]) => {
-        if (!entry.isIntersecting) return;
-        io.disconnect();
-        // performance.now() is ms since page load; hold reveals until INTRO_MS.
-        const wait = Math.max(0, INTRO_MS - performance.now());
-        timer = setTimeout(() => setShown(true), wait);
-      },
-      { threshold: 0.12, rootMargin: '0px 0px -12% 0px' },
-    );
-    io.observe(el);
-    return () => {
-      io.disconnect();
-      if (timer) clearTimeout(timer);
-    };
-  }, []);
-
-  return (
-    <section
-      ref={ref}
-      className={`${s.block} ${s.reveal}${shown ? ` ${s.shown}` : ''}`}
-      style={{ transitionDelay: `${index * 110}ms` }}
-    >
-      {children}
-    </section>
-  );
-}
 
 type Step = { n: string; title: string; desc: string };
 const STEPS: Step[] = [
@@ -84,59 +11,31 @@ const STEPS: Step[] = [
   { n: '03', title: 'Nikoh', desc: 'Tanishuv va nikohda yo‘nalish beramiz.' },
 ];
 
-type Tier = { name: string; price: string; desc: string; featured?: boolean };
+type Tier = { name: string; price: string; desc: string };
 const TIERS: Tier[] = [
   { name: 'Bepul', price: '0 €', desc: 'Anketa va asosiy maslahat' },
   { name: 'Standart', price: '20 €', desc: 'Tanlangan nomzodlar' },
-  { name: 'Premium', price: '50 €', desc: 'Yashirin tanishuv · to‘y boshqaruvi', featured: true },
+  { name: 'Premium', price: '50 €', desc: 'Yashirin tanishuv · to‘y boshqaruvi' },
 ];
-
-/* contact list — hidden for now, restore with the contact section below
-const CONTACTS = [
-  { name: 'Admin', handle: ADMIN_PRIMARY },
-  { name: 'Lobar opa', handle: ADMIN_SECONDARY },
-];
-*/
 
 export const IndexPage: FC = () => {
-  const navigate = useNavigate();
-  // True only on the first mount after a real page load.
-  const [playIntro] = useState(() => !heroIntroPlayed);
-
-  useEffect(() => {
-    // Flip only after the opening has run. This keeps the flag false during
-    // React StrictMode's immediate dev remount (so the first load still
-    // animates), while a real later navigation back sees it already played.
-    // No cleanup on unmount, so navigating away mid-intro still marks it done.
-    if (!playIntro) return;
-    setTimeout(() => { heroIntroPlayed = true; }, 2400);
-  }, [playIntro]);
-
   return (
     <Page back={false}>
-      <div className={playIntro ? `${s.root} ${s.animateIntro}` : s.root}>
-        {/* hero ------------------------------------------------ */}
+      <div className={s.root}>
+        {/* welcome ------------------------------------------- */}
         <header className={s.hero}>
-          <div className={s.logoWrap}>
-            <picture>
-              <source srcSet="/logo.avif" type="image/avif" />
-              <img className={s.logo} src="/logo.png" alt="" width={92} height={92} />
-            </picture>
-          </div>
+          <picture>
+            <source srcSet="/logo.avif" type="image/avif" />
+            <img className={s.logo} src="/logo.png" alt="" width={84} height={84} />
+          </picture>
           <h1 className={s.brand}>
             Baxtiyor <span className={s.brandItalic}>Oila</span>
           </h1>
           <p className={s.tagline}>Halol va jiddiy juftlik tanlash xizmati</p>
-
-          <button type="button" className={s.cta} onClick={() => navigate('/anketa')}>
-            <span>Anketa to‘ldirish</span>
-            <span className={s.ctaArrow}><Arrow /></span>
-          </button>
-          <p className={s.ctaHint}>Bepul · 3–5 daqiqa</p>
         </header>
 
-        {/* process -------------------------------------------- */}
-        <RevealSection index={0}>
+        {/* process ------------------------------------------- */}
+        <section className={s.block}>
           <h2 className={s.sectionTitle}>Qanday ishlaydi</h2>
           <div className={s.steps}>
             {STEPS.map(step => (
@@ -149,10 +48,10 @@ export const IndexPage: FC = () => {
               </div>
             ))}
           </div>
-        </RevealSection>
+        </section>
 
-        {/* hadith --------------------------------------------- */}
-        <RevealSection index={1}>
+        {/* hadith -------------------------------------------- */}
+        <section className={s.block}>
           <blockquote className={s.quote}>
             <span className={s.quoteMark} aria-hidden>“</span>
             <p className={s.quoteText}>
@@ -160,10 +59,10 @@ export const IndexPage: FC = () => {
             </p>
             <cite className={s.quoteCite}>Hadis · Bayhaqiy</cite>
           </blockquote>
-        </RevealSection>
+        </section>
 
-        {/* tariffs -------------------------------------------- */}
-        <RevealSection index={2}>
+        {/* tariffs ------------------------------------------- */}
+        <section className={s.block}>
           <h2 className={s.sectionTitle}>Tariflar</h2>
           <div className={s.tiers}>
             {TIERS.map(tier => (
@@ -176,40 +75,7 @@ export const IndexPage: FC = () => {
               </div>
             ))}
           </div>
-        </RevealSection>
-
-        {/* contact section hidden for now — chat now lives in the bottom nav; restore when needed:
-        <RevealSection index={3}>
-          <p className={s.eyebrow}>Aloqa</p>
-          <h2 className={s.blockTitle}>Bog‘lanish</h2>
-          <ul className={s.card}>
-            <li className={s.row}>
-              <button type="button" className={s.contact} onClick={() => navigate('/chat')}>
-                <div className={s.rowMain}>
-                  <span className={s.rowName}>Onlayn suhbat</span>
-                  <span className={s.rowDesc}>Ilova ichida admin bilan yozishing</span>
-                </div>
-                <span className={s.contactArrow}><Arrow /></span>
-              </button>
-            </li>
-            {CONTACTS.map(c => (
-              <li key={c.handle} className={s.row}>
-                <button
-                  type="button"
-                  className={s.contact}
-                  onClick={() => openTelegramLink(`https://t.me/${c.handle}`)}
-                >
-                  <div className={s.rowMain}>
-                    <span className={s.rowName}>{c.name}</span>
-                    <span className={s.rowDesc}>@{c.handle}</span>
-                  </div>
-                  <span className={s.contactArrow}><Arrow /></span>
-                </button>
-              </li>
-            ))}
-          </ul>
-        </RevealSection>
-        */}
+        </section>
 
         <footer className={s.footer}>
           <span className={s.footerText}>„Humo“ o‘zbek-olmon hamjamiyati</span>

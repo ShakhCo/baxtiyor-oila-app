@@ -1,13 +1,12 @@
 /* ============================================================
-   Baxtiyor Oila — landing (modern mobile-app style)
-   Pure white ground · soft warm-gray cards · gold accent ·
-   Manrope only, bold type scale.
+   Baxtiyor Oila — home (mobile-app style)
+   Pure white ground · soft warm-gray cards · rose accent ·
+   Manrope only. No splash animation — content shows at once.
    ============================================================ */
 
 .root {
   --bg:          #ffffff;
   --card:        #f5f4f1;
-  --card-press:  #efeee9;
   --line:        rgba(28, 22, 12, 0.07);
   --text:        #1a1712;
   --text-2:      #6b6457;
@@ -28,47 +27,39 @@
   font-family: 'Manrope', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  padding: calc(var(--tg-viewport-safe-area-inset-top, 0px) + var(--tg-viewport-content-safe-area-inset-top, 0px) + 26px)
-    calc(var(--tg-viewport-content-safe-area-inset-right, 0px) + 20px)
+  padding: calc(var(--tg-viewport-safe-area-inset-top, 0px) + var(--tg-viewport-content-safe-area-inset-top, 0px) + 16px)
+    calc(var(--tg-viewport-content-safe-area-inset-right, 0px) + 18px)
     calc(var(--bottom-nav-h) + 28px)
-    calc(var(--tg-viewport-content-safe-area-inset-left, 0px) + 20px);
+    calc(var(--tg-viewport-content-safe-area-inset-left, 0px) + 18px);
   overflow-x: hidden;
 }
 
-/* ───── hero ───── */
+/* ───── welcome card ───── */
 .hero {
   display: flex;
   flex-direction: column;
   align-items: center;
   text-align: center;
-  padding: 16px 0 8px;
+  padding: 30px 22px 28px;
+  border-radius: 24px;
+  background: var(--accent-soft);
 }
 
-.logoWrap {
-  display: flex;
-  justify-content: center;
-  align-items: flex-start;
-  transform-origin: top center;
-}
-
-/* the <picture> (AVIF + PNG fallback) generates no box, so the <img> stays the
-   flex item — keeps the logo zoom and centering identical to a bare <img> */
-.logoWrap picture { display: contents; }
+/* the <picture> (AVIF + PNG fallback) generates no box → the <img> is the flex item */
+.hero picture { display: contents; }
 
 .logo {
-  width: 92px;
-  height: 92px;
-  border-radius: 28px;
+  width: 84px;
+  height: 84px;
+  border-radius: 26px;
   object-fit: cover;
   background: #fff;
-  box-shadow:
-    0 0 0 1px var(--line),
-    0 12px 30px -14px rgba(60, 44, 16, 0.35);
+  box-shadow: 0 0 0 1px rgba(179, 79, 99, 0.14);
 }
 
 .brand {
-  margin: 18px 0 0;
-  font-size: 27px;
+  margin: 16px 0 0;
+  font-size: 26px;
   font-weight: 800;
   letter-spacing: -0.02em;
   color: var(--text);
@@ -77,70 +68,16 @@
 .brandItalic { color: var(--accent); }
 
 .tagline {
-  margin: 8px 0 0;
-  max-width: 30ch;
-  font-size: 15px;
+  margin: 7px 0 0;
+  max-width: 28ch;
+  font-size: 14.5px;
   font-weight: 500;
   line-height: 1.5;
   color: var(--text-2);
 }
 
-/* ───── primary CTA ───── */
-.cta {
-  appearance: none;
-  cursor: pointer;
-  margin: 24px 0 0;
-  width: 100%;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 10px;
-  padding: 0 20px;
-  height: 56px;
-  border: none;
-  border-radius: 16px;
-  background: var(--accent);
-  color: var(--on-accent);
-  font-family: inherit;
-  font-size: 16px;
-  font-weight: 700;
-  letter-spacing: 0.01em;
-  transition: transform 0.12s ease, background 0.15s ease;
-}
-
-.cta:active { transform: scale(0.98); }
-.cta:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
-
-.ctaArrow {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 24px;
-  height: 24px;
-  border-radius: 50%;
-  background: rgba(255, 255, 255, 0.22);
-}
-
-.ctaHint {
-  margin: 12px 0 0;
-  font-size: 13px;
-  font-weight: 500;
-  color: var(--muted);
-}
-
 /* ───── sections ───── */
-.block { margin-top: 38px; }
-
-.reveal {
-  opacity: 0;
-  transform: translateY(22px);
-  transition:
-    opacity 560ms cubic-bezier(0.2, 0.8, 0.2, 1),
-    transform 560ms cubic-bezier(0.2, 0.8, 0.2, 1);
-  will-change: opacity, transform;
-}
-
-.shown { opacity: 1; transform: none; }
+.block { margin-top: 30px; }
 
 .sectionTitle {
   margin: 0 0 14px;
@@ -150,29 +87,14 @@
   color: var(--text);
 }
 
-.eyebrow { display: none; } /* not used in the app layout */
-
-/* ───── steps ───── */
-.steps {
+/* ───── shared row card ───── */
+.row {
   display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
-/* step number — filled rose circle with a white number */
-.num {
-  flex: none;
-  width: 40px;
-  height: 40px;
-  display: inline-flex;
   align-items: center;
-  justify-content: center;
-  border-radius: 50%;
-  background: var(--accent);
-  color: var(--on-accent);
-  font-size: 16px;
-  font-weight: 800;
-  letter-spacing: -0.01em;
+  gap: 14px;
+  padding: 16px;
+  border-radius: 18px;
+  background: var(--card);
 }
 
 .rowMain {
@@ -195,6 +117,29 @@
   font-weight: 500;
   line-height: 1.45;
   color: var(--text-2);
+}
+
+/* ───── steps ───── */
+.steps {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+/* step number — filled rose circle with a white number */
+.num {
+  flex: none;
+  width: 40px;
+  height: 40px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: var(--accent);
+  color: var(--on-accent);
+  font-size: 16px;
+  font-weight: 800;
+  letter-spacing: -0.01em;
 }
 
 /* ───── hadith ───── */
@@ -227,7 +172,7 @@
 }
 
 .quoteCite {
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 700;
   letter-spacing: 0.1em;
   text-transform: uppercase;
@@ -239,15 +184,6 @@
   display: flex;
   flex-direction: column;
   gap: 10px;
-}
-
-.row {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  padding: 16px;
-  border-radius: 18px;
-  background: var(--card);
 }
 
 /* price — rose-filled pill with white text, matching the step number circle */
@@ -264,7 +200,7 @@
 
 /* ───── footer ───── */
 .footer {
-  margin-top: 44px;
+  margin-top: 40px;
   display: flex;
   justify-content: center;
 }
@@ -273,38 +209,4 @@
   font-size: 13px;
   font-weight: 500;
   color: var(--muted);
-}
-
-/* fades not used in the app layout */
-.fadeTop, .fadeBottom, .vignette { display: none; }
-
-/* ───── opening: logo zooms in big from the centre, then content settles ───── */
-@keyframes logoZoom {
-  from { transform: scale(3.2); height: 64vh; }
-  to   { transform: scale(1);   height: 92px; }
-}
-
-@keyframes rise {
-  from { opacity: 0; transform: translateY(12px); }
-  to   { opacity: 1; transform: translateY(0); }
-}
-
-@keyframes fadeIn {
-  from { opacity: 0; }
-  to   { opacity: 1; }
-}
-
-.animateIntro .logoWrap { animation: logoZoom 1800ms cubic-bezier(0.645, 0.045, 0.355, 1) both; }
-.animateIntro .brand    { animation: rise 700ms cubic-bezier(0.645, 0.045, 0.355, 1) 1100ms both; }
-.animateIntro .tagline  { animation: rise 700ms cubic-bezier(0.645, 0.045, 0.355, 1) 1250ms both; }
-.animateIntro .cta      { animation: fadeIn 700ms ease 1400ms both; }
-.animateIntro .ctaHint  { animation: rise 700ms cubic-bezier(0.645, 0.045, 0.355, 1) 1520ms both; }
-
-@media (prefers-reduced-motion: reduce) {
-  .reveal { opacity: 1; transform: none; transition: none; }
-  .animateIntro .logoWrap,
-  .animateIntro .brand,
-  .animateIntro .tagline,
-  .animateIntro .cta,
-  .animateIntro .ctaHint { animation: none; }
 }
