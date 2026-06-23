@@ -54,6 +54,13 @@ USE_TZ = True
 
 STATIC_URL = "static/"
 
+# Uploaded anketa photos (stored as AVIF). Served from /media/ by nginx in
+# production (shared volume) and by Django when DEBUG.
+MEDIA_URL = "/media/"
+MEDIA_ROOT = BASE_DIR / "media"
+# cap an uploaded image we'll read into Pillow (matches nginx client_max_body_size)
+DATA_UPLOAD_MAX_MEMORY_SIZE = 25 * 1024 * 1024
+
 CACHES = {
     "default": {
         "BACKEND": "django.core.cache.backends.locmem.LocMemCache",

@@ -81,3 +81,25 @@ class Profile(models.Model):
 
     def __str__(self) -> str:
         return f"{self.user.telegram_id} — {self.full_name}"
+
+
+def photo_upload_to(instance, filename):
+    return f"photos/{instance.user_id}/{filename}"
+
+
+class Photo(models.Model):
+    """An anketa photo, stored as AVIF. Tied to the user (not the Profile) so it
+    can be uploaded before the anketa is submitted. Up to 5 per user."""
+
+    MAX_PER_USER = 5
+
+    user       = models.ForeignKey(User, on_delete=models.CASCADE, related_name="photos")
+    image      = models.ImageField(upload_to=photo_upload_to)
+    order      = models.PositiveSmallIntegerField(default=0)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["order", "created_at"]
+
+    def __str__(self) -> str:
+        return f"Photo<{self.pk}> of {self.user_id}"

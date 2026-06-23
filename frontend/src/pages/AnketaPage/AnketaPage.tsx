@@ -7,6 +7,7 @@ import { apiGet, apiPost, apiPut } from '@/api/client';
 import { useAnketaDraft, type FormShape, type Status } from '@/stores/anketaDraft';
 
 import { Matches } from './Matches';
+import { PhotoUpload } from './PhotoUpload';
 import s from './AnketaPage.module.css';
 
 const REGIONS = [
@@ -446,6 +447,12 @@ export const AnketaPage: FC = () => {
                   />
                   <div className={s.hint}>Ixtiyoriy</div>
                 </Field>
+
+                <Field label="Rasmlaringiz">
+                  <PhotoUpload />
+                  <div className={s.hint}>Ixtiyoriy · 5 tagacha rasm</div>
+                </Field>
+
             <h2 className={s.groupTitle}>Ma‘lumot va kasb</h2>
 
                 <Field label="Ma‘lumoti va Oliygohi 📚" required>
