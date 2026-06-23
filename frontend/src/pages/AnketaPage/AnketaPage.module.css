@@ -536,6 +536,11 @@
   padding-bottom: 80px;
 }
 
+/* AVIF (+ PNG fallback) <picture> stays layout-transparent so the <img> keeps
+   its place in the flex column and the success-logo zoom is unaffected */
+.loadingWrap picture,
+.statusLogoWrap picture { display: contents; }
+
 .loadingLogo {
   width: 72px;
   height: 72px;

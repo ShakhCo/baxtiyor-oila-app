@@ -249,7 +249,10 @@ export const AnketaPage: FC = () => {
         <div className={s.root}>
           <div className={s.content}>
             <div className={s.loadingWrap}>
-              <img className={s.loadingLogo} src="/logo.png" alt="" width={72} height={72} />
+              <picture>
+                <source srcSet="/logo.avif" type="image/avif" />
+                <img className={s.loadingLogo} src="/logo.png" alt="" width={72} height={72} />
+              </picture>
               <span className={s.loadingText}>Yuklanmoqda…</span>
             </div>
           </div>
@@ -304,7 +307,10 @@ export const AnketaPage: FC = () => {
           <div className={s.content}>
             <div className={animateSuccess ? `${s.statusWrap} ${s.animateSuccess}` : s.statusWrap}>
               <div className={s.statusLogoWrap}>
-                <img className={s.statusLogo} src="/logo.png" alt="" width={88} height={88} />
+                <picture>
+                  <source srcSet="/logo.avif" type="image/avif" />
+                  <img className={s.statusLogo} src="/logo.png" alt="" width={88} height={88} />
+                </picture>
               </div>
               <h2 className={s.statusTitle}>Rahmat!</h2>
               <p className={s.statusText}>

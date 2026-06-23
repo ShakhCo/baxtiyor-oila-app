@@ -149,7 +149,10 @@ export const IndexPage: FC = () => {
         {/* hero ------------------------------------------------ */}
         <header className={s.hero}>
           <div className={s.logoWrap}>
-            <img className={s.logo} src="/logo.png" alt="" width={92} height={92} />
+            <picture>
+              <source srcSet="/logo.avif" type="image/avif" />
+              <img className={s.logo} src="/logo.png" alt="" width={92} height={92} />
+            </picture>
           </div>
           <h1 className={s.brand}>
             Baxtiyor <span className={s.brandItalic}>Oila</span>

@@ -51,6 +51,10 @@
   transform-origin: top center;
 }
 
+/* the <picture> (AVIF + PNG fallback) generates no box, so the <img> stays the
+   flex item — keeps the logo zoom and centering identical to a bare <img> */
+.logoWrap picture { display: contents; }
+
 .logo {
   width: 92px;
   height: 92px;
