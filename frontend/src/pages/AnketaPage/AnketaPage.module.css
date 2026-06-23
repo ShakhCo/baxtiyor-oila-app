@@ -140,9 +140,24 @@
 /* opacity-only entrance — must NOT leave a transform on this element, as a
    transformed ancestor breaks the native <select> popup in Chromium/WebView. */
 .section {
-  padding: 26px 0 116px; /* bottom space so the last field clears the fixed nav bar */
+  padding: 8px 0 124px; /* bottom space so the last field clears the fixed nav bar */
   animation: sectionFade 360ms ease both;
 }
+
+/* group heading — a quiet rose divider that breaks the single long form into
+   readable sections (not steps; everything stays on one page) */
+.groupTitle {
+  margin: 32px 0 16px;
+  padding-bottom: 11px;
+  border-bottom: 1px solid rgba(40, 30, 16, 0.10);
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.10em;
+  text-transform: uppercase;
+  color: #9a3c52;
+}
+
+.section > .groupTitle:first-of-type { margin-top: 8px; }
 
 .field {
   display: block;

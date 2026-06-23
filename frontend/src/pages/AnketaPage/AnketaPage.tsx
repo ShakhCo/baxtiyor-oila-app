@@ -55,8 +55,6 @@ const STEPS: StepDef[] = [
   { id: 6, title: 'Tarif', subtitle: 'So‘nggi qadam — xizmat turini tanlang.', required: ['tariff'] },
 ];
 
-const TOTAL_STEPS = STEPS.length;
-
 function stepIsValid(step: StepDef, form: FormShape): boolean {
   if (step.required.some(k => !String(form[k]).trim())) return false;
   if (step.validate && !step.validate(form)) return false;
@@ -101,8 +99,6 @@ export const AnketaPage: FC = () => {
   const form     = useAnketaDraft(st => st.form);
   const setForm  = useAnketaDraft(st => st.setForm);
   const setField = useAnketaDraft(st => st.setField);
-  const step     = useAnketaDraft(st => st.step);
-  const setStep  = useAnketaDraft(st => st.setStep);
   const setSubmittedStatus = useAnketaDraft(st => st.setSubmittedStatus);
 
   // Synchronously read the cached submission so a returning user lands straight
@@ -163,18 +159,12 @@ export const AnketaPage: FC = () => {
       .finally(() => setLoading(false));
   }, []);
 
-  // Telegram back button: step > 1 → previous step, step 1 → leave page.
+  // Telegram back button leaves the page (single-page form, no steps).
   useEffect(() => {
     if (loading || submitted) return;
     backButton.show();
-    return backButton.onClick(() => {
-      if (step > 1) {
-        setStep(Math.max(1, step - 1));
-      } else {
-        navigate(-1);
-      }
-    });
-  }, [step, loading, submitted, navigate, setStep]);
+    return backButton.onClick(() => navigate(-1));
+  }, [loading, submitted, navigate]);
 
   function onField<K extends keyof FormShape>(key: K) {
     return (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
@@ -198,27 +188,7 @@ export const AnketaPage: FC = () => {
     }
   }
 
-  const currentStep = STEPS[step - 1];
-  const currentValid = useMemo(() => stepIsValid(currentStep, form), [currentStep, form]);
   const allValid = useMemo(() => STEPS.every(st => stepIsValid(st, form)), [form]);
-
-  function goNext() {
-    if (!currentValid) return;
-    setStep(Math.min(TOTAL_STEPS, step + 1));
-  }
-
-  function goBack() {
-    setStep(Math.max(1, step - 1));
-  }
-
-  // Whenever the step changes, dismiss the keyboard and scroll to the top.
-  // Runs after React renders the new step so the scroll lines up with the new content.
-  useEffect(() => {
-    if (document.activeElement instanceof HTMLElement) {
-      document.activeElement.blur();
-    }
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  }, [step]);
 
   async function onSubmit(e: FormEvent) {
     e.preventDefault();
@@ -347,33 +317,28 @@ export const AnketaPage: FC = () => {
     );
   }
 
-  const isLast = step === TOTAL_STEPS;
-  const isFirst = step === 1;
-
   return (
     <Page back={false}>
       <form className={s.root} onSubmit={onSubmit} onFocus={onFormFocus} noValidate>
         <div className={s.fadeTop} aria-hidden />
         <div className={s.content}>
           <header className={s.formHeader}>
-            <h1 className={s.stepTitle}>{currentStep.title}</h1>
-            <p className={s.stepSubtitle}>{currentStep.subtitle}</p>
+            <h1 className={s.stepTitle}>Anketa to‘ldirish</h1>
+            <p className={s.stepSubtitle}>Iltimos, barcha maydonlarni to‘ldiring.</p>
 
-            {isFirst && (
-              <div className={s.mission}>
-                <span className={s.missionLabel}>Niyatimiz</span>
-                <p className={s.missionText}>
-                  Allohning roziligini istab, chet eldagi yoshlarimizga halol yo‘lda yor topishga yordam berish.
-                </p>
-              </div>
-            )}
+            <div className={s.mission}>
+              <span className={s.missionLabel}>Niyatimiz</span>
+              <p className={s.missionText}>
+                Allohning roziligini istab, chet eldagi yoshlarimizga halol yo‘lda yor topishga yordam berish.
+              </p>
+            </div>
           </header>
 
           {error && <div className={s.errorBanner}>{error}</div>}
 
-          <section className={s.section} key={step}>
-            {step === 1 && (
-              <>
+          <section className={s.section}>
+            <h2 className={s.groupTitle}>O‘zingiz haqida</h2>
+
                 <Field label="To‘liq ism-sharif" required>
                   <input
                     className={s.input}
@@ -433,11 +398,8 @@ export const AnketaPage: FC = () => {
                   />
                   <div className={s.hint}>Ixtiyoriy</div>
                 </Field>
-              </>
-            )}
+            <h2 className={s.groupTitle}>Ma‘lumot va kasb</h2>
 
-            {step === 2 && (
-              <>
                 <Field label="Ma‘lumoti va Oliygohi 📚" required>
                   <input
                     className={s.input}
@@ -461,11 +423,8 @@ export const AnketaPage: FC = () => {
                     required
                   />
                 </Field>
-              </>
-            )}
+            <h2 className={s.groupTitle}>Oilaviy holat</h2>
 
-            {step === 3 && (
-              <>
                 <Field
                   label="Oilaviy holati (turmush qurmagan / ajrashgan, farzandlar)"
                   required
@@ -517,10 +476,8 @@ export const AnketaPage: FC = () => {
                   />
                   <div className={s.hint}>Ixtiyoriy</div>
                 </Field>
-              </>
-            )}
+            <h2 className={s.groupTitle}>Germaniyadagi hayot</h2>
 
-            {step === 4 && (
               <Field
                 label="Germaniyadagi statusi va kelajak rejalari"
               >
@@ -533,10 +490,9 @@ export const AnketaPage: FC = () => {
                 />
                 <div className={s.hint}>Ixtiyoriy — bo‘sh qoldirsangiz ham bo‘ladi</div>
               </Field>
-            )}
 
-            {step === 5 && (
-              <>
+            <h2 className={s.groupTitle}>Shaxsiyat va juftlik</h2>
+
                 <Field
                   label="O‘zingizga ta‘rif bering"
                   required
@@ -564,11 +520,8 @@ export const AnketaPage: FC = () => {
                     required
                   />
                 </Field>
-              </>
-            )}
+            <h2 className={s.groupTitle}>Tarif</h2>
 
-            {step === 6 && (
-              <>
                 <Field label="Qaysi tarifni tanlaysiz" required>
                   <div className={s.tariffGroup}>
                     <label className={`${s.tariffOption} ${form.tariff === 'basic' ? s.tariffSelected : ''}`}>
@@ -606,36 +559,18 @@ export const AnketaPage: FC = () => {
                     </label>
                   </div>
                 </Field>
-              </>
-            )}
           </section>
         </div>
 
         <div className={s.navBar}>
           <div className={s.navRow}>
-            {!isFirst && (
-              <button type="button" className={s.backButton} onClick={goBack}>
-                ← Orqaga
-              </button>
-            )}
-            {isLast ? (
-              <button
-                type="submit"
-                className={s.submitButton}
-                disabled={!allValid || submitting}
-              >
-                {submitting ? 'Yuborilmoqda…' : 'Anketani yuborish'}
-              </button>
-            ) : (
-              <button
-                type="button"
-                className={s.submitButton}
-                disabled={!currentValid}
-                onClick={goNext}
-              >
-                Davom etish →
-              </button>
-            )}
+            <button
+              type="submit"
+              className={s.submitButton}
+              disabled={!allValid || submitting}
+            >
+              {submitting ? 'Yuborilmoqda…' : 'Anketani yuborish'}
+            </button>
           </div>
         </div>
       </form>
