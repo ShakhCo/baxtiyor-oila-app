@@ -1,4 +1,4 @@
-import { type FC, type ReactNode } from 'react';
+import { useState, type FC, type ReactNode } from 'react';
 import { useParams } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 
@@ -47,6 +47,7 @@ function Row({ label, value }: { label: string; value?: string }) {
 
 export const CandidatePage: FC = () => {
   const { id } = useParams<{ id: string }>();
+  const [copied, setCopied] = useState(false);
   const { data, isLoading, isError } = useQuery({
     queryKey: ['candidate', id],
     queryFn: () => apiGet<Candidate>(`/anketa/matches/${id}`),
@@ -102,6 +103,30 @@ export const CandidatePage: FC = () => {
           <Row label="Germaniyadagi statusi" value={data.germany_status} />
           <Row label="O‘ziga ta‘rif" value={data.self_description} />
           <Row label="Kutilgan juftlik" value={data.partner_expectations} />
+        </div>
+
+        <div className={s.idCard}>
+          <div className={s.idTop}>
+            <div>
+              <div className={s.idLabel}>Anketa ID</div>
+              <div className={s.idValue}>{id}</div>
+            </div>
+            <button
+              type="button"
+              className={s.copyBtn}
+              onClick={() => {
+                if (!id) return;
+                navigator.clipboard?.writeText(id)
+                  .then(() => { setCopied(true); setTimeout(() => setCopied(false), 1500); })
+                  .catch(() => {});
+              }}
+            >
+              {copied ? 'Nusxalandi' : 'Nusxalash'}
+            </button>
+          </div>
+          <p className={s.idHint}>
+            Bu nomzod yoqsa, admin bilan suhbatda shu ID ni yuboring.
+          </p>
         </div>
       </>
     );

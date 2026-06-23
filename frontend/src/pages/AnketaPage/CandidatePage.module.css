@@ -125,6 +125,62 @@
   word-break: break-word;
 }
 
+/* anketa id — to reference the candidate when messaging the admin */
+.idCard {
+  margin-top: 12px;
+  padding: 16px 18px;
+  border-radius: 18px;
+  background: #fbe9ed;
+}
+
+.idTop {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.idLabel {
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #9a3c52;
+}
+
+.idValue {
+  margin-top: 3px;
+  font-size: 20px;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  color: #1a1712;
+}
+
+.copyBtn {
+  flex: none;
+  appearance: none;
+  border: 1px solid rgba(179, 79, 99, 0.5);
+  background: #ffffff;
+  color: #9a3c52;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  padding: 8px 14px;
+  border-radius: 999px;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: transform 0.1s ease;
+}
+
+.copyBtn:active { transform: scale(0.95); }
+
+.idHint {
+  margin: 10px 0 0;
+  font-size: 13.5px;
+  line-height: 1.5;
+  color: rgba(34, 27, 19, 0.62);
+}
+
 .note {
   margin: 70px 0;
   text-align: center;
