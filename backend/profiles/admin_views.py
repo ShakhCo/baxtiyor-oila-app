@@ -61,6 +61,7 @@ def list_anketas(request):
         "pending":  Profile.objects.filter(status="pending").count(),
         "approved": Profile.objects.filter(status="approved").count(),
         "rejected": Profile.objects.filter(status="rejected").count(),
+        "all":      Profile.objects.count(),
     }
     return Response({
         "items": [_summary(p) for p in qs],

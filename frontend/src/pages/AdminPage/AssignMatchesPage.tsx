@@ -81,25 +81,27 @@ export const AssignMatchesPage: FC = () => {
         ) : (
           <div className={s.list}>
             {filtered.map(c => (
-              <div className={s.card} key={c.telegram_id}>
-                <span className={s.score}>{c.match_percent}%</span>
-                <span className={s.main}>
-                  <span className={s.name}>{c.full_name}</span>
-                  <span className={s.meta}>
-                    {c.age} yosh · {region(c.birthplace_region)}
-                    {c.gender ? ` · ${GENDER_LABEL[c.gender]}` : ''}
-                  </span>
-                  <span className={`${s.tag} ${s[`tag_${c.status}`]}`}>
-                    {STATUS_LABEL[c.status] ?? c.status}
-                  </span>
-                </span>
+              <div className={c.assigned ? `${s.card} ${s.cardOn}` : s.card} key={c.telegram_id}>
+                <div className={s.top}>
+                  <div className={s.main}>
+                    <span className={s.name}>{c.full_name}</span>
+                    <span className={s.meta}>
+                      {c.age} yosh · {region(c.birthplace_region)}
+                      {c.gender ? ` · ${GENDER_LABEL[c.gender]}` : ''}
+                    </span>
+                    <span className={`${s.tag} ${s[`tag_${c.status}`]}`}>
+                      {STATUS_LABEL[c.status] ?? c.status}
+                    </span>
+                  </div>
+                  <span className={s.score}>{c.match_percent}%</span>
+                </div>
                 <button
                   type="button"
-                  className={c.assigned ? `${s.addBtn} ${s.added}` : s.addBtn}
+                  className={c.assigned ? `${s.toggle} ${s.toggleOff}` : `${s.toggle} ${s.toggleOn}`}
                   disabled={busyId === c.telegram_id}
                   onClick={() => toggle(c)}
                 >
-                  {c.assigned ? '✓' : '+'}
+                  {c.assigned ? 'Olib tashlash' : 'Qo‘shish'}
                 </button>
               </div>
             ))}

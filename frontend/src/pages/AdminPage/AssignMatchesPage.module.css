@@ -70,35 +70,45 @@
 
 .card {
   display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 14px;
+  flex-direction: column;
+  padding: 16px;
   background: #f5f4f1;
   border: 1px solid rgba(40, 30, 16, 0.08);
-  border-radius: 16px;
+  border-radius: 18px;
 }
 
+.cardOn {
+  background: #fbe9ed;
+  border-color: rgba(179, 79, 99, 0.45);
+}
+
+.top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.main { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 4px; }
+.name { font-size: 17px; font-weight: 700; color: #1a1712; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.meta { font-size: 13.5px; color: rgba(34, 27, 19, 0.55); }
+
+/* score badge — top right */
 .score {
   flex: none;
-  min-width: 48px;
-  text-align: center;
-  padding: 6px 8px;
-  border-radius: 12px;
-  background: rgba(179, 79, 99, 0.12);
+  padding: 6px 12px;
+  border-radius: 999px;
+  background: rgba(179, 79, 99, 0.14);
   color: #9a3c52;
   font-size: 15px;
   font-weight: 800;
   letter-spacing: -0.01em;
 }
 
-.main { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 3px; }
-.name { font-size: 16px; font-weight: 700; color: #1a1712; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.meta { font-size: 13px; color: rgba(34, 27, 19, 0.55); }
-
 .tag {
   align-self: flex-start;
   margin-top: 2px;
-  padding: 3px 9px;
+  padding: 3px 10px;
   border-radius: 999px;
   font-size: 12px;
   font-weight: 700;
@@ -108,30 +118,32 @@
 .tag_approved { background: rgba(127, 170, 106, 0.16); color: #3f7d35; }
 .tag_rejected { background: rgba(192, 57, 43, 0.12); color: #c0392b; }
 
-.addBtn {
-  flex: none;
-  width: 40px;
-  height: 40px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+/* full-width add / remove button at the bottom of the card */
+.toggle {
+  width: 100%;
+  margin-top: 14px;
   appearance: none;
-  border: 1px solid rgba(179, 79, 99, 0.5);
-  background: #ffffff;
-  color: #9a3c52;
-  font-size: 22px;
-  line-height: 1;
-  border-radius: 12px;
+  padding: 13px;
+  border-radius: 13px;
+  font-family: inherit;
+  font-size: 15px;
+  font-weight: 700;
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
-  transition: transform 0.1s ease;
+  transition: transform 0.1s ease, opacity 0.15s ease;
 }
 
-.addBtn:active { transform: scale(0.92); }
-.addBtn:disabled { opacity: 0.5; }
+.toggle:active { transform: scale(0.99); }
+.toggle:disabled { opacity: 0.55; }
 
-.added {
+.toggleOn {
+  border: none;
   background: #b34f63;
-  border-color: #b34f63;
   color: #ffffff;
+}
+
+.toggleOff {
+  background: #ffffff;
+  border: 1px solid rgba(179, 79, 99, 0.5);
+  color: #9a3c52;
 }

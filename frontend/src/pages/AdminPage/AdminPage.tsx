@@ -6,7 +6,7 @@ import { apiGet } from '@/api/client';
 
 import s from './AnketaListPage.module.css';
 
-type FilterKey = 'pending' | 'approved' | 'rejected';
+type FilterKey = 'pending' | 'approved' | 'rejected' | 'all';
 
 type AnketaSummary = {
   telegram_id:               number;
@@ -51,6 +51,7 @@ const STATUS_LABELS: Record<FilterKey, string> = {
   pending:  'Yangi',
   approved: 'Tasdiqlangan',
   rejected: 'Rad etilgan',
+  all:      'Barchasi',
 };
 
 const UZ_MONTHS = ['Yan', 'Fev', 'Mar', 'Apr', 'May', 'Iyun', 'Iyul', 'Avg', 'Sen', 'Okt', 'Noy', 'Dek'];
@@ -66,7 +67,7 @@ export const AdminPage: FC = () => {
   const navigate = useNavigate();
   const [me, setMe] = useState<MeResponse | null>(null);
   const [items, setItems] = useState<AnketaSummary[]>([]);
-  const [counts, setCounts] = useState<Record<FilterKey, number>>({ pending: 0, approved: 0, rejected: 0 });
+  const [counts, setCounts] = useState<Record<FilterKey, number>>({ pending: 0, approved: 0, rejected: 0, all: 0 });
   const [filter, setFilter] = useState<FilterKey>('pending');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -125,7 +126,7 @@ export const AdminPage: FC = () => {
         </header>
 
         <div className={s.tabs}>
-          {(['pending', 'approved', 'rejected'] as FilterKey[]).map(key => (
+          {(['pending', 'approved', 'rejected', 'all'] as FilterKey[]).map(key => (
             <button
               key={key}
               type="button"
