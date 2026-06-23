@@ -213,6 +213,31 @@
   color: #9a3c52;
 }
 
+/* quick jump to this user's anketa — mirrors the tag pill, on the left */
+.anketaBtn {
+  position: absolute;
+  left: 16px;
+  top: calc(var(--tg-viewport-safe-area-inset-top, 0px) + var(--tg-viewport-content-safe-area-inset-top, 0px) + 12px);
+  z-index: 4;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  appearance: none;
+  border: 1px solid rgba(179, 79, 99, 0.5);
+  background: #fbe9ed;
+  color: #9a3c52;
+  border-radius: 999px;
+  padding: 7px 12px;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: transform 0.1s ease;
+}
+
+.anketaBtn:active { transform: scale(0.95); }
+
 .sheetBackdrop {
   position: fixed;
   inset: 0;

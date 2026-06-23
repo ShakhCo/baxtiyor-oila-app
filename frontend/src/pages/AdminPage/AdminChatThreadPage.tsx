@@ -1,5 +1,5 @@
 import { useEffect, useState, type FC } from 'react';
-import { useParams } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { useQueryClient } from '@tanstack/react-query';
 
 import { Page } from '@/components/Page.tsx';
@@ -33,8 +33,18 @@ function TagIcon() {
   );
 }
 
+function DocIcon() {
+  return (
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" aria-hidden>
+      <rect x="5" y="3.5" width="14" height="17" rx="2.2" stroke="currentColor" strokeWidth="1.7" />
+      <path d="M8.6 8.5h6.8M8.6 12h6.8M8.6 15.5h4.2" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" />
+    </svg>
+  );
+}
+
 export const AdminChatThreadPage: FC = () => {
   const { telegramId } = useParams<{ telegramId: string }>();
+  const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [name, setName] = useState('');
   const [username, setUsername] = useState('');
@@ -95,6 +105,15 @@ export const AdminChatThreadPage: FC = () => {
     <Page back>
       <div className={`${s.root} ${s.light}`}>
         <header className={`${s.header} ${s.headerAdmin}`}>
+          <button
+            type="button"
+            className={s.anketaBtn}
+            onClick={() => navigate(`/admin/anketa/${telegramId}`)}
+            aria-label="Anketani ochish"
+          >
+            <DocIcon />
+            Anketa
+          </button>
           {metaLoaded ? (
             <>
               <span className={s.name}>{name}</span>
