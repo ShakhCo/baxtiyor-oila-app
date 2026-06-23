@@ -25,6 +25,11 @@ TARIFF_CHOICES = [
     ("standart", "Standart"),
 ]
 
+GENDER_CHOICES = [
+    ("male",   "Erkak"),
+    ("female", "Ayol"),
+]
+
 STATUS_CHOICES = [
     ("pending",  "Pending"),
     ("approved", "Approved"),
@@ -39,6 +44,9 @@ class Profile(models.Model):
 
     # Section 1 — about you
     full_name                 = models.CharField(max_length=255)
+    # blank for the rows created before gender existed; new submissions require it
+    # (enforced by the serializer / form). Drives the opposite-gender match feed.
+    gender                    = models.CharField(max_length=8, choices=GENDER_CHOICES, blank=True, default="")
     age                       = models.PositiveSmallIntegerField()
     birthplace_region         = models.CharField(max_length=32, choices=REGION_CHOICES)
     current_residence_germany = models.CharField(max_length=255)

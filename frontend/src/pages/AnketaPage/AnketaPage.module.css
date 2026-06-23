@@ -276,6 +276,34 @@
 .selectBtn:active { border-color: var(--gold); }
 .selectBtnEmpty { color: var(--text-mute); }
 
+/* ───── gender segmented control ───── */
+.segmented {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.segment {
+  appearance: none;
+  cursor: pointer;
+  padding: 14px 12px;
+  border-radius: 13px;
+  border: 1px solid var(--line-2);
+  background: var(--surface);
+  color: var(--text);
+  font-family: inherit;
+  font-size: 16px;
+  font-weight: 600;
+  -webkit-tap-highlight-color: transparent;
+  transition: border-color 0.15s ease, background 0.15s ease, color 0.15s ease;
+}
+
+.segmentOn {
+  border-color: var(--gold);
+  background: rgba(179, 79, 99, 0.12);
+  color: var(--gold-2);
+}
+
 /* ───── picker bottom sheet ───── */
 .sheetBackdrop {
   position: fixed;
@@ -649,6 +677,32 @@
 .statusPending  { background: rgba(179, 79, 99, 0.16); color: var(--gold-2); }
 .statusApproved { background: rgba(155, 171, 116, 0.18); color: var(--ok); }
 .statusRejected { background: rgba(207, 122, 82, 0.18);  color: var(--warn); }
+
+/* ───── approved screen: compact banner above the match feed ───── */
+.approvedHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 6px 0 20px;
+}
+
+.approvedHead .statusBadge { margin-top: 0; }
+
+.viewLink {
+  flex: none;
+  appearance: none;
+  border: none;
+  background: none;
+  cursor: pointer;
+  color: var(--gold);
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 700;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.viewLink:active { opacity: 0.55; }
 
 .statusActions {
   display: flex;

@@ -6,6 +6,7 @@ import { Page } from '@/components/Page.tsx';
 import { apiGet, apiPost, apiPut } from '@/api/client';
 import { useAnketaDraft, type FormShape, type Status } from '@/stores/anketaDraft';
 
+import { Matches } from './Matches';
 import s from './AnketaPage.module.css';
 
 const REGIONS = [
@@ -42,7 +43,7 @@ const STEPS: StepDef[] = [
     id: 1,
     title: 'O‘zingiz haqida',
     subtitle: 'Avvalo, sizni yaqindan tanishtiring.',
-    required: ['full_name', 'age', 'birthplace_region', 'current_residence_germany'],
+    required: ['full_name', 'gender', 'age', 'birthplace_region', 'current_residence_germany'],
     validate: (f) => {
       const a = Number(f.age);
       return Number.isFinite(a) && a >= 18 && a <= 99;
@@ -64,6 +65,7 @@ function stepIsValid(step: StepDef, form: FormShape): boolean {
 // Fields shown in the read-only review of a submitted anketa.
 const REVIEW_FIELDS: { key: keyof FormShape; label: string }[] = [
   { key: 'full_name',                 label: 'To‘liq ism-sharif' },
+  { key: 'gender',                    label: 'Jinsi' },
   { key: 'age',                       label: 'Yoshi' },
   { key: 'birthplace_region',         label: 'Tug‘ilgan joyi' },
   { key: 'current_residence_germany', label: 'Olmoniyadagi shahar' },
@@ -83,6 +85,9 @@ const REVIEW_FIELDS: { key: keyof FormShape; label: string }[] = [
 function reviewValue(key: keyof FormShape, form: FormShape): string {
   const raw = form[key];
   if (!raw) return '';
+  if (key === 'gender') {
+    return raw === 'male' ? 'Erkak' : raw === 'female' ? 'Ayol' : '';
+  }
   if (key === 'birthplace_region') {
     return REGIONS.find(r => r.value === raw)?.label ?? String(raw);
   }
@@ -128,6 +133,7 @@ export const AnketaPage: FC = () => {
           setRejection(data.rejection_reason ?? '');
           setForm({
             full_name:                 String(data.full_name ?? ''),
+            gender:                    (data.gender === 'male' || data.gender === 'female') ? data.gender : '',
             age:                       data.age != null ? String(data.age) : '',
             birthplace_region:         String(data.birthplace_region ?? ''),
             current_residence_germany: String(data.current_residence_germany ?? ''),
@@ -270,6 +276,25 @@ export const AnketaPage: FC = () => {
     );
   }
 
+  // approved → a compact banner + the opposite-gender match feed
+  if (submitted && status === 'approved') {
+    return (
+      <Page back>
+        <div className={s.root}>
+          <div className={s.content}>
+            <header className={s.approvedHead}>
+              <span className={`${s.statusBadge} ${s.statusApproved}`}>Tasdiqlangan</span>
+              <button type="button" className={s.viewLink} onClick={() => setViewing(true)}>
+                Anketangiz →
+              </button>
+            </header>
+            <Matches />
+          </div>
+        </div>
+      </Page>
+    );
+  }
+
   if (submitted) {
     return (
       <Page back>
@@ -348,6 +373,29 @@ export const AnketaPage: FC = () => {
                     autoComplete="name"
                     required
                   />
+                </Field>
+
+                <Field label="Jinsi" required>
+                  <div className={s.segmented} role="radiogroup" aria-label="Jinsi">
+                    <button
+                      type="button"
+                      role="radio"
+                      aria-checked={form.gender === 'male'}
+                      className={form.gender === 'male' ? `${s.segment} ${s.segmentOn}` : s.segment}
+                      onClick={() => setField('gender', 'male')}
+                    >
+                      Erkak
+                    </button>
+                    <button
+                      type="button"
+                      role="radio"
+                      aria-checked={form.gender === 'female'}
+                      className={form.gender === 'female' ? `${s.segment} ${s.segmentOn}` : s.segment}
+                      onClick={() => setField('gender', 'female')}
+                    >
+                      Ayol
+                    </button>
+                  </div>
                 </Field>
 
                 <Field label="Yoshi" required>

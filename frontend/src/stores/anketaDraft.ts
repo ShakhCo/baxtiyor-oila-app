@@ -2,10 +2,12 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 
 export type Tariff = 'basic' | 'standart';
+export type Gender = 'male' | 'female';
 export type Status = 'pending' | 'approved' | 'rejected';
 
 export type FormShape = {
   full_name: string;
+  gender: Gender | '';
   age: string;
   birthplace_region: string;
   current_residence_germany: string;
@@ -25,6 +27,7 @@ export type FormShape = {
 
 export const EMPTY_FORM: FormShape = {
   full_name: '',
+  gender: '',
   age: '',
   birthplace_region: '',
   current_residence_germany: '',
@@ -74,7 +77,13 @@ export const useAnketaDraft = create<AnketaDraftState>()(
     }),
     {
       name: 'baxtiyor-anketa-draft',
-      version: 1,
+      version: 2,
+      // v1 → v2 added `gender`; backfill any keys a stored draft is missing
+      // so every form field stays a controlled (defined) value.
+      migrate: (persisted) => {
+        const p = (persisted ?? {}) as { form?: Partial<FormShape> };
+        return { ...p, form: { ...EMPTY_FORM, ...(p.form ?? {}) } };
+      },
       partialize: (state) => ({
         form: state.form,
         step: state.step,

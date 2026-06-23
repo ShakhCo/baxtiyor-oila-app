@@ -4,10 +4,32 @@ from rest_framework.response import Response
 
 from chat.models import Conversation, Label
 from profiles.models import Profile
-from profiles.serializers import ProfileSerializer
+from profiles.serializers import MatchSerializer, ProfileSerializer
 
 # Chat label applied to a user based on the tariff they picked in the anketa.
 TARIFF_LABELS = {"basic": "20 €", "standart": "50 €"}
+
+# How many ranked candidates the match feed returns.
+MATCH_LIMIT = 20
+
+
+def _norm(value):
+    return (value or "").strip().casefold()
+
+
+def _match_score(me, other):
+    """Heuristic similarity between two approved anketas. Higher = closer.
+
+    Same birthplace region is the strongest signal (shared roots matter in this
+    community), then age proximity, then living in the same German city."""
+    score = 0
+    if me.birthplace_region and me.birthplace_region == other.birthplace_region:
+        score += 50
+    score += max(0, 30 - abs((me.age or 0) - (other.age or 0)) * 3)
+    if _norm(me.current_residence_germany) and \
+            _norm(me.current_residence_germany) == _norm(other.current_residence_germany):
+        score += 25
+    return score
 
 
 def _assign_tariff_label(user, tariff):
@@ -80,3 +102,29 @@ def my_anketa(request):
     serializer.save(contact_info=_contact_from(user))
     _assign_tariff_label(user, serializer.instance.tariff)
     return Response({"submitted": True, **serializer.data})
+
+
+@api_view(["GET"])
+def my_matches(request):
+    """Opposite-gender approved anketas, ranked by similarity to the caller's.
+
+    Available only once the caller's own anketa is approved and has a gender.
+    `available` tells the client whether the feed applies (vs. a gentle hint)."""
+    try:
+        me = Profile.objects.get(user=request.user)
+    except Profile.DoesNotExist:
+        return Response({"available": False, "matches": []})
+
+    if me.status != "approved":
+        return Response({"available": False, "reason": "not_approved", "matches": []})
+    if not me.gender:
+        return Response({"available": False, "reason": "no_gender", "matches": []})
+
+    opposite = "female" if me.gender == "male" else "male"
+    candidates = (
+        Profile.objects
+        .filter(status="approved", gender=opposite)
+        .exclude(user=request.user)
+    )
+    ranked = sorted(candidates, key=lambda p: _match_score(me, p), reverse=True)[:MATCH_LIMIT]
+    return Response({"available": True, "matches": MatchSerializer(ranked, many=True).data})
