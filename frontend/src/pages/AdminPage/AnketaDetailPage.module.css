@@ -44,9 +44,9 @@
 
 .eyebrow {
   margin: 0 0 5px;
-  font-size: 11px;
-  font-weight: 600;
-  letter-spacing: 0.14em;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
   text-transform: uppercase;
   color: #9a3c52;
 }
@@ -74,9 +74,9 @@
 
 .badge {
   display: inline-block;
-  padding: 4px 12px;
+  padding: 5px 13px;
   border-radius: 999px;
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 600;
 }
 
@@ -84,47 +84,66 @@
 .badgeApproved { background: rgba(127, 170, 106, 0.14); border: 1px solid rgba(127, 170, 106, 0.4); color: #3f7d35; }
 .badgeRejected { background: rgba(217, 138, 127, 0.14); border: 1px solid rgba(217, 138, 127, 0.4); color: #c0392b; }
 
-/* sections */
+/* sections — clean white cards with a hairline border (no flat gray blocks) */
 .section {
   margin-bottom: 12px;
-  padding: 15px 16px;
-  background: #f5f4f1;
-  border-radius: 16px;
+  padding: 16px 18px 10px;
+  background: #ffffff;
+  border: 1px solid rgba(40, 30, 16, 0.10);
+  border-radius: 18px;
 }
 
+/* header: a rose accent tab + the title, set off from the rows by a divider */
 .sectionLabel {
-  margin-bottom: 8px;
-  font-size: 11px;
-  font-weight: 600;
-  letter-spacing: 0.14em;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0;
+  padding-bottom: 13px;
+  border-bottom: 1px solid rgba(40, 30, 16, 0.08);
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.10em;
   text-transform: uppercase;
   color: #9a3c52;
 }
 
+.sectionLabel::before {
+  content: "";
+  flex: none;
+  width: 3px;
+  height: 14px;
+  border-radius: 2px;
+  background: #b34f63;
+}
+
 .sectionLabelWarn { color: #c0392b; }
+.sectionLabelWarn::before { background: #c0392b; }
 
 .row {
   display: grid;
-  grid-template-columns: minmax(108px, 0.5fr) 1fr;
-  gap: 10px;
-  padding: 10px 0;
-  border-top: 1px solid rgba(40, 30, 16, 0.07);
+  grid-template-columns: minmax(110px, 0.46fr) 1fr;
+  gap: 14px;
+  padding: 11px 0;
+  border-top: 1px solid rgba(40, 30, 16, 0.06);
 }
 
-/* the row right after a section title has no divider above it (the label is the
-   first element, so :first-of-type wouldn't match the row) */
-.sectionLabel + .row { border-top: none; padding-top: 2px; }
+/* the first row sits under the header divider, so it carries no rule of its own */
+.sectionLabel + .row { border-top: none; padding-top: 13px; }
 
 .rowLabel {
   font-size: 13px;
-  color: rgba(34, 27, 19, 0.48);
+  font-weight: 500;
+  color: rgba(34, 27, 19, 0.5);
   line-height: 1.45;
 }
 
+/* the value is the content — give it the weight and size */
 .rowValue {
-  font-size: 14.5px;
+  font-size: 15px;
+  font-weight: 600;
   color: #1a1712;
-  line-height: 1.5;
+  line-height: 1.45;
   white-space: pre-wrap;
   word-break: break-word;
 }
@@ -272,9 +291,10 @@
 
 .skelSection {
   margin-bottom: 12px;
-  padding: 15px 16px;
-  background: #f5f4f1;
-  border-radius: 16px;
+  padding: 16px 18px 10px;
+  background: #ffffff;
+  border: 1px solid rgba(40, 30, 16, 0.10);
+  border-radius: 18px;
 }
 
 .skelLabel { width: 38%; height: 13px; margin-bottom: 14px; }
