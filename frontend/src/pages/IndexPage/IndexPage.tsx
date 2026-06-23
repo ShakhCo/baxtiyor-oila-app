@@ -1,8 +1,17 @@
 import { type FC } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 import { Page } from '@/components/Page.tsx';
 
 import s from './IndexPage.module.css';
+
+function Arrow() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 18 18" fill="none" aria-hidden>
+      <path d="M3 9 H14 M10 5 L14 9 L10 13" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
 
 type Step = { n: string; title: string; desc: string };
 const STEPS: Step[] = [
@@ -19,6 +28,7 @@ const TIERS: Tier[] = [
 ];
 
 export const IndexPage: FC = () => {
+  const navigate = useNavigate();
   return (
     <Page back={false}>
       <div className={s.root}>
@@ -36,7 +46,13 @@ export const IndexPage: FC = () => {
 
         {/* process ------------------------------------------- */}
         <section className={s.block}>
-          <h2 className={s.sectionTitle}>Qanday ishlaydi</h2>
+          <div className={s.sectionHead}>
+            <h2 className={s.sectionTitle}>Qanday ishlaydi</h2>
+            <button type="button" className={s.startLink} onClick={() => navigate('/anketa')}>
+              Boshlash
+              <Arrow />
+            </button>
+          </div>
           <div className={s.steps}>
             {STEPS.map(step => (
               <div key={step.n} className={s.row}>

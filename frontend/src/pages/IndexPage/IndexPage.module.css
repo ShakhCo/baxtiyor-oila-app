@@ -87,6 +87,38 @@
   color: var(--text);
 }
 
+/* title row with a "Boshlash →" action on the right */
+.sectionHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.sectionHead .sectionTitle { margin: 0; }
+
+.startLink {
+  flex: none;
+  appearance: none;
+  border: none;
+  background: none;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 2px 4px 8px;
+  color: var(--accent);
+  font-family: inherit;
+  font-size: 15px;
+  font-weight: 700;
+  -webkit-tap-highlight-color: transparent;
+  transition: opacity 0.15s ease;
+}
+
+.startLink:active { opacity: 0.55; }
+.startLink svg { display: block; }
+
 /* ───── shared row card ───── */
 .row {
   display: flex;
