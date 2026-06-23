@@ -4,8 +4,34 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework.response import Response
 
 from accounts.permissions import IsAdmin
+from chat.models import Conversation, Label
 from profiles.models import Profile
 from profiles.serializers import ProfileSerializer
+
+# Chat label applied to the user's support thread based on the anketa status, so
+# admins can filter the inbox by it. Mutually exclusive (pending = no label).
+STATUS_LABELS = {"approved": "Tasdiqlangan", "rejected": "Rad etilgan"}
+_ALL_STATUS_LABELS = set(STATUS_LABELS.values())
+
+
+def _assign_status_label(user, status):
+    """Replace any previous status label with the one matching `status`
+    (pending clears it). Other labels — e.g. tariff — are preserved."""
+    conv, _ = Conversation.objects.get_or_create(user=user)
+    labels = [l for l in (conv.labels or []) if l not in _ALL_STATUS_LABELS]
+    new = STATUS_LABELS.get(status)
+    if new:
+        Label.objects.get_or_create(name=new)  # keep it in the global filter set
+        labels = [new] + labels  # prepend so it survives the cap
+    conv.labels = labels[:8]
+    conv.save(update_fields=["labels"])
+
+
+def _apply_status(profile, new_status, reason=""):
+    profile.status = new_status
+    profile.rejection_reason = reason if new_status == "rejected" else ""
+    profile.save(update_fields=["status", "rejection_reason", "updated_at"])
+    _assign_status_label(profile.user, new_status)
 
 
 def _summary(p: Profile) -> dict:
@@ -53,6 +79,7 @@ def get_anketa(_request, telegram_id: int):
         "last_name":     user.last_name,
         "username":      user.username,
         "language_code": user.language_code,
+        "photos":        [{"id": p.id, "url": p.image.url} for p in user.photos.all()],
         **ProfileSerializer(profile).data,
     })
 
@@ -61,9 +88,7 @@ def get_anketa(_request, telegram_id: int):
 @permission_classes([IsAdmin])
 def approve_anketa(_request, telegram_id: int):
     profile = get_object_or_404(Profile, user_id=telegram_id)
-    profile.status = "approved"
-    profile.rejection_reason = ""
-    profile.save(update_fields=["status", "rejection_reason", "updated_at"])
+    _apply_status(profile, "approved")
     return Response({"telegram_id": profile.user_id, "status": profile.status})
 
 
@@ -77,9 +102,7 @@ def reject_anketa(request, telegram_id: int):
             {"detail": "Rejection reason is required."},
             status=http_status.HTTP_400_BAD_REQUEST,
         )
-    profile.status = "rejected"
-    profile.rejection_reason = reason
-    profile.save(update_fields=["status", "rejection_reason", "updated_at"])
+    _apply_status(profile, "rejected", reason)
     return Response({
         "telegram_id":      profile.user_id,
         "status":           profile.status,
@@ -103,6 +126,7 @@ def set_anketa_status(request, telegram_id: int):
             {"detail": "Invalid status."},
             status=http_status.HTTP_400_BAD_REQUEST,
         )
+    reason = ""
     if new_status == "rejected":
         reason = (request.data.get("reason") or "").strip()
         if not reason:
@@ -110,11 +134,7 @@ def set_anketa_status(request, telegram_id: int):
                 {"detail": "Rejection reason is required."},
                 status=http_status.HTTP_400_BAD_REQUEST,
             )
-        profile.rejection_reason = reason
-    else:
-        profile.rejection_reason = ""
-    profile.status = new_status
-    profile.save(update_fields=["status", "rejection_reason", "updated_at"])
+    _apply_status(profile, new_status, reason)
     return Response({
         "telegram_id":      profile.user_id,
         "status":           profile.status,

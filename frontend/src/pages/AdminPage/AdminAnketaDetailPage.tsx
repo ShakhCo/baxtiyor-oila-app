@@ -34,6 +34,7 @@ type AnketaDetail = {
   rejection_reason:          string;
   created_at:                string;
   updated_at:                string;
+  photos:                    { id: number; url: string }[];
 };
 
 const REGION_LABELS: Record<string, string> = {
@@ -152,6 +153,16 @@ export const AdminAnketaDetailPage: FC = () => {
             </span>
           </div>
         </header>
+
+        {data.photos?.length > 0 && (
+          <div className={s.photos}>
+            {data.photos.map(p => (
+              <a key={p.id} className={s.photo} href={p.url} target="_blank" rel="noreferrer">
+                <img src={p.url} alt="" loading="lazy" />
+              </a>
+            ))}
+          </div>
+        )}
 
         {error && <div className={s.error}>{error}</div>}
 
