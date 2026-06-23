@@ -259,18 +259,14 @@ export const AnketaPage: FC = () => {
                 );
               })}
             </div>
-          </div>
-          <div className={s.navBar}>
-            <div className={s.navRow}>
-              <button
-                type="button"
-                className={s.backButton}
-                style={{ flex: 1 }}
-                onClick={() => setViewing(false)}
-              >
-                ← Orqaga
-              </button>
-            </div>
+
+            <button
+              type="button"
+              className={s.reviewBack}
+              onClick={() => setViewing(false)}
+            >
+              ← Orqaga
+            </button>
           </div>
         </div>
       </Page>
