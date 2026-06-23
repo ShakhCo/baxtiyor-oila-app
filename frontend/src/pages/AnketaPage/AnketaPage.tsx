@@ -166,12 +166,18 @@ export const AnketaPage: FC = () => {
       .finally(() => setLoading(false));
   }, []);
 
-  // Telegram back button leaves the page (single-page form, no steps).
+  // Telegram back button: in the read-only review it returns to the status
+  // screen; on the form it leaves the page. (Status/approved screens have none.)
   useEffect(() => {
-    if (loading || submitted) return;
-    backButton.show();
-    return backButton.onClick(() => navigate(-1));
-  }, [loading, submitted, navigate]);
+    if (submitted && viewing) {
+      backButton.show();
+      return backButton.onClick(() => setViewing(false));
+    }
+    if (!loading && !submitted) {
+      backButton.show();
+      return backButton.onClick(() => navigate(-1));
+    }
+  }, [loading, submitted, viewing, navigate]);
 
   function onField<K extends keyof FormShape>(key: K) {
     return (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
@@ -247,6 +253,9 @@ export const AnketaPage: FC = () => {
               <h1 className={s.stepTitle}>Anketangiz</h1>
               <p className={s.stepSubtitle}>Yuborilgan ma‘lumotlar</p>
             </header>
+
+            <PhotoUpload readOnly />
+
             <div className={s.review}>
               {REVIEW_FIELDS.map(f => {
                 const value = reviewValue(f.key, form);
@@ -259,14 +268,6 @@ export const AnketaPage: FC = () => {
                 );
               })}
             </div>
-
-            <button
-              type="button"
-              className={s.reviewBack}
-              onClick={() => setViewing(false)}
-            >
-              ← Orqaga
-            </button>
           </div>
         </div>
       </Page>

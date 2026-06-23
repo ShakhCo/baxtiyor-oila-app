@@ -446,29 +446,6 @@
   z-index: 15;
 }
 
-/* inline "back" at the end of the read-only review; clears the bottom tab bar */
-.reviewBack {
-  width: 100%;
-  box-sizing: border-box;
-  margin: 18px 0 calc(var(--bottom-nav-h) + 32px);
-  appearance: none;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 16px 18px;
-  background: transparent;
-  color: var(--text-soft);
-  border: 1px solid var(--line-2);
-  border-radius: 14px;
-  font-family: inherit;
-  font-weight: 600;
-  font-size: 16px;
-  cursor: pointer;
-  -webkit-tap-highlight-color: transparent;
-  transition: border-color 0.15s ease, color 0.15s ease;
-}
-
-.reviewBack:active { transform: translateY(1px); }
 
 /* inline submit at the end of the form (not sticky); clears the bottom tab bar */
 .submitButton {
@@ -680,7 +657,7 @@
 
 /* ───── read-only review ───── */
 .review {
-  padding: 20px 0 124px;
+  padding: 20px 0 calc(var(--bottom-nav-h) + 32px);
   display: flex;
   flex-direction: column;
   animation: sectionFade 360ms ease both;

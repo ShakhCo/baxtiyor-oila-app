@@ -4,6 +4,9 @@
   gap: 10px;
 }
 
+/* read-only gallery (anketa review) — a little breathing room under the title */
+.readonly { margin-top: 14px; }
+
 .tile,
 .add {
   position: relative;

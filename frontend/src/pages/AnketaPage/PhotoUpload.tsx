@@ -8,7 +8,7 @@ type Photo = { id: number; url: string };
 
 const MAX = 5;
 
-export const PhotoUpload: FC = () => {
+export const PhotoUpload: FC<{ readOnly?: boolean }> = ({ readOnly = false }) => {
   const [photos, setPhotos] = useState<Photo[]>([]);
   const [loading, setLoading] = useState(true);
   const [pending, setPending] = useState(0);
@@ -47,22 +47,27 @@ export const PhotoUpload: FC = () => {
     });
   }
 
-  const canAdd = !loading && photos.length + pending < MAX;
+  const canAdd = !readOnly && !loading && photos.length + pending < MAX;
+
+  // read-only with nothing uploaded → render nothing
+  if (readOnly && !loading && photos.length === 0) return null;
 
   return (
-    <div>
+    <div className={readOnly ? s.readonly : undefined}>
       <div className={s.grid}>
         {photos.map(p => (
           <div className={s.tile} key={p.id}>
             <img className={s.img} src={p.url} alt="" loading="lazy" />
-            <button
-              type="button"
-              className={s.remove}
-              onClick={() => remove(p.id)}
-              aria-label="O‘chirish"
-            >
-              ×
-            </button>
+            {!readOnly && (
+              <button
+                type="button"
+                className={s.remove}
+                onClick={() => remove(p.id)}
+                aria-label="O‘chirish"
+              >
+                ×
+              </button>
+            )}
           </div>
         ))}
 
