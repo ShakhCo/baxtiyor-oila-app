@@ -6,16 +6,19 @@
    ============================================================ */
 
 .root {
-  --bg:        #0d0b08;
-  --surface:   #16120d;
-  --surface-2: #1c170f;
-  --line:      rgba(233, 222, 198, 0.10);
-  --line-2:    rgba(233, 222, 198, 0.16);
-  --text:      #ece2c8;
-  --text-soft: rgba(236, 226, 200, 0.66);
-  --text-mute: rgba(236, 226, 200, 0.40);
-  --gold:      #c89b54;
-  --gold-2:    #d8b06a;
+  /* light theme — warm ivory ground · brass accent */
+  --bg:        #f5efe3;
+  --surface:   #ffffff;
+  --surface-2: #faf2e3;
+  --line:      rgba(43, 33, 18, 0.10);
+  --line-2:    rgba(43, 33, 18, 0.16);
+  --text:      #2b2117;
+  --text-soft: rgba(43, 33, 23, 0.62);
+  --text-mute: rgba(43, 33, 23, 0.42);
+  --gold:      #b5863a;   /* brass — buttons, borders, large display accents */
+  --gold-2:    #caa056;   /* lighter brass — hover/glow */
+  --gold-ink:  #8a6217;   /* deep brass — small text accents (contrast on ivory) */
+  --on-gold:   #fffaf0;   /* text/icons sitting on a brass surface */
 
   position: relative;
   display: flex;
@@ -44,7 +47,7 @@
   inset: 0;
   z-index: -1;
   pointer-events: none;
-  background: radial-gradient(110% 38% at 50% 0%, rgba(200, 155, 84, 0.10), transparent 62%);
+  background: radial-gradient(120% 40% at 50% 0%, rgba(181, 134, 58, 0.14), transparent 64%);
 }
 
 /* hero -------------------------------------------------------- */
@@ -85,12 +88,12 @@
   border-radius: 50%;
   object-fit: cover;
   background: #fff;
-  /* subtle medallion frame: soft gold hairline → dark gap → faint outer ring */
+  /* subtle medallion frame: soft gold hairline → ivory gap → faint outer ring */
   box-shadow:
-    0 0 0 1px rgba(216, 176, 106, 0.45),
+    0 0 0 1px rgba(181, 134, 58, 0.45),
     0 0 0 4px var(--bg),
-    0 0 0 5px rgba(200, 155, 84, 0.16),
-    0 14px 30px -16px rgba(0, 0, 0, 0.7);
+    0 0 0 5px rgba(181, 134, 58, 0.18),
+    0 16px 32px -18px rgba(70, 50, 20, 0.30);
 }
 
 .tagline {
@@ -116,11 +119,12 @@
   border: none;
   border-radius: 13px;
   background: var(--gold);
-  color: #1b1206;
+  color: var(--on-gold);
   font-family: 'Cormorant Garamond', serif;
   font-size: 20px;
   font-weight: 600;
   letter-spacing: 0.01em;
+  box-shadow: 0 10px 24px -12px rgba(140, 100, 30, 0.55);
   transition: background 0.18s ease, transform 0.12s ease;
 }
 
@@ -135,7 +139,7 @@
   width: 24px;
   height: 24px;
   border-radius: 50%;
-  background: rgba(27, 18, 6, 0.16);
+  background: rgba(255, 255, 255, 0.20);
 }
 
 .ctaHint {
@@ -171,7 +175,7 @@
   font-weight: 600;
   letter-spacing: 0.2em;
   text-transform: uppercase;
-  color: var(--gold);
+  color: var(--gold-ink);
 }
 
 .blockTitle {
@@ -328,7 +332,7 @@
   font-size: 13px;
   letter-spacing: 0.14em;
   text-transform: uppercase;
-  color: var(--gold);
+  color: var(--gold-ink);
 }
 
 /* admin pill (only visible to admins) ------------------------ */
@@ -388,13 +392,13 @@
 .fadeTop {
   top: 0;
   height: 60px;
-  background: linear-gradient(to bottom, var(--bg) 36%, rgba(13, 11, 8, 0));
+  background: linear-gradient(to bottom, var(--bg) 36%, rgba(245, 239, 227, 0));
 }
 
 .fadeBottom {
   bottom: 0;
   height: 120px;
-  background: linear-gradient(to top, var(--bg) 28%, rgba(13, 11, 8, 0));
+  background: linear-gradient(to top, var(--bg) 28%, rgba(245, 239, 227, 0));
 }
 
 /* secondary FAB (admins only) — anketa panel, stacked above the chat FAB */
@@ -436,7 +440,7 @@
   border: none;
   border-radius: 50%;
   background: var(--gold);
-  color: #1b1206;
+  color: var(--on-gold);
   cursor: pointer;
   transition: background 0.15s ease, transform 0.12s ease;
   animation: fabPulse 2.4s ease-in-out infinite;
@@ -458,21 +462,18 @@
 @keyframes fabPulse {
   0% {
     box-shadow:
-      0 0 0 1px rgba(0, 0, 0, 0.25),
-      0 14px 30px -8px rgba(0, 0, 0, 0.6),
-      0 0 0 0 rgba(200, 155, 84, 0.5);
+      0 10px 24px -10px rgba(140, 100, 30, 0.45),
+      0 0 0 0 rgba(181, 134, 58, 0.45);
   }
   70% {
     box-shadow:
-      0 0 0 1px rgba(0, 0, 0, 0.25),
-      0 14px 30px -8px rgba(0, 0, 0, 0.6),
-      0 0 0 14px rgba(200, 155, 84, 0);
+      0 10px 24px -10px rgba(140, 100, 30, 0.45),
+      0 0 0 14px rgba(181, 134, 58, 0);
   }
   100% {
     box-shadow:
-      0 0 0 1px rgba(0, 0, 0, 0.25),
-      0 14px 30px -8px rgba(0, 0, 0, 0.6),
-      0 0 0 0 rgba(200, 155, 84, 0);
+      0 10px 24px -10px rgba(140, 100, 30, 0.45),
+      0 0 0 0 rgba(181, 134, 58, 0);
   }
 }
 
