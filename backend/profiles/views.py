@@ -3,29 +3,12 @@ from rest_framework.decorators import api_view
 from rest_framework.response import Response
 
 from chat.models import Conversation, Label
+from profiles.matching import match_score
 from profiles.models import Profile
 from profiles.serializers import MatchSerializer, ProfileSerializer
 
 # Chat label applied to a user based on the tariff they picked in the anketa.
 TARIFF_LABELS = {"basic": "20 €", "standart": "50 €"}
-
-def _norm(value):
-    return (value or "").strip().casefold()
-
-
-def _match_score(me, other):
-    """Heuristic similarity between two approved anketas. Higher = closer.
-
-    Same birthplace region is the strongest signal (shared roots matter in this
-    community), then age proximity, then living in the same German city."""
-    score = 0
-    if me.birthplace_region and me.birthplace_region == other.birthplace_region:
-        score += 50
-    score += max(0, 30 - abs((me.age or 0) - (other.age or 0)) * 3)
-    if _norm(me.current_residence_germany) and \
-            _norm(me.current_residence_germany) == _norm(other.current_residence_germany):
-        score += 25
-    return score
 
 
 def _assign_tariff_label(user, tariff):
@@ -125,8 +108,9 @@ def my_matches(request):
         .select_related("user")
         .prefetch_related("user__photos")
     )
-    ranked = sorted(candidates, key=lambda p: _match_score(me, p), reverse=True)
-    return Response({"available": True, "matches": MatchSerializer(ranked, many=True).data})
+    ranked = sorted(candidates, key=lambda p: match_score(me, p), reverse=True)
+    serialized = MatchSerializer(ranked, many=True, context={"me": me}).data
+    return Response({"available": True, "matches": serialized})
 
 
 @api_view(["GET"])
@@ -150,4 +134,4 @@ def match_detail(request, telegram_id: int):
         )
     except Profile.DoesNotExist:
         return Response(status=http_status.HTTP_404_NOT_FOUND)
-    return Response(MatchSerializer(candidate).data)
+    return Response(MatchSerializer(candidate, context={"me": me}).data)

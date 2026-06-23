@@ -11,6 +11,7 @@ type MatchCard = {
   full_name: string;
   age: number;
   region_label: string;
+  match_percent: number;
   photos: { id: number; url: string }[];
 };
 
@@ -66,6 +67,7 @@ export const Matches: FC = () => {
                 <span className={s.cardName}>{firstName(m.full_name)}</span>
                 <span className={s.cardMeta}>{m.age} yosh · {m.region_label}</span>
               </span>
+              <span className={s.score}>{m.match_percent}%</span>
             </button>
           ))}
         </div>

@@ -1,5 +1,6 @@
 from rest_framework import serializers
 
+from profiles.matching import match_percent, match_reasons
 from profiles.models import GENDER_CHOICES, REGION_CHOICES, Profile
 
 _REGION_LABELS = dict(REGION_CHOICES)
@@ -52,6 +53,8 @@ class MatchSerializer(serializers.ModelSerializer):
     id = serializers.IntegerField(source="user_id", read_only=True)
     region_label = serializers.SerializerMethodField()
     photos = serializers.SerializerMethodField()
+    match_percent = serializers.SerializerMethodField()
+    match_reasons = serializers.SerializerMethodField()
 
     class Meta:
         model = Profile
@@ -59,6 +62,8 @@ class MatchSerializer(serializers.ModelSerializer):
             "id",
             "full_name",
             "gender",
+            "match_percent",
+            "match_reasons",
             "age",
             "birthplace_region",
             "region_label",
@@ -81,3 +86,11 @@ class MatchSerializer(serializers.ModelSerializer):
 
     def get_photos(self, obj):
         return [{"id": p.id, "url": p.image.url} for p in obj.user.photos.all()]
+
+    def get_match_percent(self, obj):
+        me = self.context.get("me")
+        return match_percent(me, obj) if me else None
+
+    def get_match_reasons(self, obj):
+        me = self.context.get("me")
+        return match_reasons(me, obj) if me else []

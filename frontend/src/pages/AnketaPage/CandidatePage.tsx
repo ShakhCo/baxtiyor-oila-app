@@ -23,10 +23,17 @@ type Candidate = {
   germany_status: string;
   self_description: string;
   partner_expectations: string;
+  match_percent: number;
+  match_reasons: string[];
   photos: { id: number; url: string }[];
 };
 
 const GENDER_LABEL: Record<string, string> = { male: 'Erkak', female: 'Ayol' };
+
+function joinUz(parts: string[]): string {
+  if (parts.length <= 1) return parts[0] ?? '';
+  return `${parts.slice(0, -1).join(', ')} va ${parts[parts.length - 1]}`;
+}
 
 function Row({ label, value }: { label: string; value?: string }) {
   if (!value || !value.trim()) return null;
@@ -56,11 +63,19 @@ export const CandidatePage: FC = () => {
     body = (
       <>
         <header className={s.header}>
-          <h1 className={s.name}>{data.full_name}</h1>
+          <div className={s.headRow}>
+            <h1 className={s.name}>{data.full_name}</h1>
+            <span className={s.score}>{data.match_percent}% mos</span>
+          </div>
           <p className={s.sub}>
             {data.age} yosh
             {data.gender ? ` · ${GENDER_LABEL[data.gender]}` : ''}
             {data.region_label ? ` · ${data.region_label}` : ''}
+          </p>
+          <p className={s.statement}>
+            {data.match_reasons.length > 0
+              ? `Bu nomzod siz bilan ${joinUz(data.match_reasons)}.`
+              : 'Hozircha umumiy belgilar kam, ammo tanishib ko‘rishingiz mumkin.'}
           </p>
         </header>
 

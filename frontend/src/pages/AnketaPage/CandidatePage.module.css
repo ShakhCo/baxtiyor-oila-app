@@ -25,6 +25,13 @@
 
 .header { margin-bottom: 16px; }
 
+.headRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
 .name {
   margin: 0;
   font-size: 27px;
@@ -34,11 +41,30 @@
   color: #1a1712;
 }
 
+.score {
+  flex: none;
+  padding: 6px 13px;
+  border-radius: 999px;
+  background: rgba(179, 79, 99, 0.12);
+  color: #9a3c52;
+  font-size: 14px;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  white-space: nowrap;
+}
+
 .sub {
   margin: 7px 0 0;
   font-size: 14.5px;
   font-weight: 600;
   color: #9a3c52;
+}
+
+.statement {
+  margin: 10px 0 0;
+  font-size: 14.5px;
+  line-height: 1.5;
+  color: rgba(34, 27, 19, 0.7);
 }
 
 /* photos */
