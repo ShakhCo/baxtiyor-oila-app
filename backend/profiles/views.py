@@ -127,3 +127,27 @@ def my_matches(request):
     )
     ranked = sorted(candidates, key=lambda p: _match_score(me, p), reverse=True)
     return Response({"available": True, "matches": MatchSerializer(ranked, many=True).data})
+
+
+@api_view(["GET"])
+def match_detail(request, telegram_id: int):
+    """Full profile of a single candidate — only reachable by an approved user
+    and only for an approved opposite-gender anketa (no contact info)."""
+    try:
+        me = Profile.objects.get(user=request.user)
+    except Profile.DoesNotExist:
+        return Response(status=http_status.HTTP_404_NOT_FOUND)
+    if me.status != "approved" or not me.gender:
+        return Response(status=http_status.HTTP_404_NOT_FOUND)
+
+    opposite = "female" if me.gender == "male" else "male"
+    try:
+        candidate = (
+            Profile.objects
+            .select_related("user")
+            .prefetch_related("user__photos")
+            .get(user_id=telegram_id, status="approved", gender=opposite)
+        )
+    except Profile.DoesNotExist:
+        return Response(status=http_status.HTTP_404_NOT_FOUND)
+    return Response(MatchSerializer(candidate).data)

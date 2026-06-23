@@ -5,6 +5,7 @@ import { AdminChatPage } from '@/pages/AdminPage/AdminChatPage';
 import { AdminChatThreadPage } from '@/pages/AdminPage/AdminChatThreadPage';
 import { AdminPage } from '@/pages/AdminPage/AdminPage';
 import { AnketaPage } from '@/pages/AnketaPage/AnketaPage';
+import { CandidatePage } from '@/pages/AnketaPage/CandidatePage';
 import { BroadcastDetailPage } from '@/pages/BroadcastPage/BroadcastDetailPage';
 import { BroadcastPage } from '@/pages/BroadcastPage/BroadcastPage';
 import { ChatPage } from '@/pages/ChatPage/ChatPage';
@@ -24,6 +25,7 @@ interface Route {
 export const routes: Route[] = [
   { path: '/', Component: IndexPage },
   { path: '/anketa', Component: AnketaPage, title: 'Anketa' },
+  { path: '/candidate/:id', Component: CandidatePage, title: 'Nomzod' },
   { path: '/chat', Component: ChatPage, title: 'Suhbat' },
   { path: '/admin', Component: AdminPage, title: 'Admin' },
   { path: '/admin/anketa/:telegramId', Component: AdminAnketaDetailPage, title: 'Anketa' },

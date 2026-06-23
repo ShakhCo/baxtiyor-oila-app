@@ -5,6 +5,7 @@ from profiles import admin_views, photo_views, views
 urlpatterns = [
     path("anketa", views.my_anketa),
     path("anketa/matches", views.my_matches),
+    path("anketa/matches/<int:telegram_id>", views.match_detail),
     path("anketa/photos", photo_views.my_photos),
     path("anketa/photos/<int:photo_id>", photo_views.my_photo),
     path("admin/anketas", admin_views.list_anketas),

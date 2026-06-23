@@ -49,12 +49,14 @@ class MatchSerializer(serializers.ModelSerializer):
     """A matched candidate shown to an approved user. Intentionally omits
     contact_info and tariff so connecting still goes through the admin."""
 
+    id = serializers.IntegerField(source="user_id", read_only=True)
     region_label = serializers.SerializerMethodField()
     photos = serializers.SerializerMethodField()
 
     class Meta:
         model = Profile
         fields = [
+            "id",
             "full_name",
             "gender",
             "age",
