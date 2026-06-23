@@ -1,6 +1,7 @@
 import type { ComponentType, JSX } from 'react';
 
 import { AdminAnketaDetailPage } from '@/pages/AdminPage/AdminAnketaDetailPage';
+import { AssignMatchesPage } from '@/pages/AdminPage/AssignMatchesPage';
 import { AdminChatPage } from '@/pages/AdminPage/AdminChatPage';
 import { AdminChatThreadPage } from '@/pages/AdminPage/AdminChatThreadPage';
 import { AdminPage } from '@/pages/AdminPage/AdminPage';
@@ -29,6 +30,7 @@ export const routes: Route[] = [
   { path: '/chat', Component: ChatPage, title: 'Suhbat' },
   { path: '/admin', Component: AdminPage, title: 'Admin' },
   { path: '/admin/anketa/:telegramId', Component: AdminAnketaDetailPage, title: 'Anketa' },
+  { path: '/admin/anketa/:telegramId/assign', Component: AssignMatchesPage, title: 'Anketa qo‘shish' },
   { path: '/admin/chat', Component: AdminChatPage, title: 'Suhbatlar' },
   { path: '/admin/chat/:telegramId', Component: AdminChatThreadPage, title: 'Suhbat' },
   { path: '/admin/broadcast', Component: BroadcastPage, title: 'Ommaviy xabar' },

@@ -15,4 +15,5 @@ urlpatterns = [
     path("admin/anketas/<int:telegram_id>/status", admin_views.set_anketa_status),
     path("admin/anketas/<int:telegram_id>/matches", admin_views.anketa_matches),
     path("admin/anketas/<int:telegram_id>/matches/<int:candidate_id>", admin_views.anketa_match_remove),
+    path("admin/anketas/<int:telegram_id>/suggestions", admin_views.anketa_suggestions),
 ]

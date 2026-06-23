@@ -5,6 +5,7 @@ from rest_framework.response import Response
 
 from accounts.permissions import IsAdmin
 from chat.models import Conversation, Label
+from profiles.matching import match_percent, match_score
 from profiles.models import Profile
 from profiles.serializers import ProfileSerializer
 
@@ -115,6 +116,30 @@ def anketa_matches(request, telegram_id: int):
 
     matches = profile.matches.all().order_by("full_name")
     return Response({"matches": [_match_summary(p) for p in matches]})
+
+
+@api_view(["GET"])
+@permission_classes([IsAdmin])
+def anketa_suggestions(request, telegram_id: int):
+    """All other anketas, ranked by similarity to this one, with an `assigned`
+    flag — an assist for the admin when choosing who to match."""
+    profile = get_object_or_404(Profile, user_id=telegram_id)
+    assigned_ids = set(profile.matches.values_list("user_id", flat=True))
+    others = list(
+        Profile.objects.select_related("user").exclude(user_id=telegram_id)
+    )
+    others.sort(key=lambda p: match_score(profile, p), reverse=True)
+    return Response({
+        "suggestions": [
+            {
+                **_match_summary(p),
+                "gender": p.gender,
+                "match_percent": match_percent(profile, p),
+                "assigned": p.user_id in assigned_ids,
+            }
+            for p in others
+        ],
+    })
 
 
 @api_view(["DELETE"])

@@ -134,7 +134,6 @@ export const AdminAnketaDetailPage: FC = () => {
     <Page>
       <div className={s.root}>
         <div className={s.fadeTop} aria-hidden />
-        <div className={s.fadeBottom} aria-hidden />
 
         <header className={s.detailHeader}>
           <p className={s.eyebrow}>Anketa</p>

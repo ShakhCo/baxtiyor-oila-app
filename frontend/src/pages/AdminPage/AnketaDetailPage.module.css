@@ -9,7 +9,7 @@
   -webkit-font-smoothing: antialiased;
   overflow-x: hidden;
   padding: calc(var(--tg-viewport-safe-area-inset-top, 0px) + var(--tg-viewport-content-safe-area-inset-top, 0px) + 22px) 18px
-    calc(var(--tg-viewport-safe-area-inset-bottom, 0px) + 120px);
+    calc(var(--tg-viewport-safe-area-inset-bottom, 0px) + 40px);
 }
 
 /* no action bar (approved/rejected) → less bottom space */
@@ -160,17 +160,12 @@
 }
 
 /* sticky action bar */
+/* inline at the end of the list (not sticky) */
 .actions {
-  position: fixed;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  z-index: 10;
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 10px;
-  padding: 16px 18px calc(var(--tg-viewport-safe-area-inset-bottom, 0px) + 16px);
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0), #ffffff 28%, #ffffff);
+  margin-top: 16px;
 }
 
 .btn {
