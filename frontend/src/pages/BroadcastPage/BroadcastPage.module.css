@@ -3,8 +3,8 @@
   min-height: 100vh;
   min-height: 100dvh;
   box-sizing: border-box;
-  background: #0d0b08;
-  color: #ece2c8;
+  background: #ffffff;
+  color: #1a1712;
   font-family: 'Manrope', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
   -webkit-font-smoothing: antialiased;
   overflow-x: hidden;
@@ -20,16 +20,16 @@
   font-weight: 600;
   letter-spacing: 0.14em;
   text-transform: uppercase;
-  color: #d8b06a;
+  color: #9a3c52;
 }
 
 .title {
   margin: 0;
-  font-family: 'Cormorant Garamond', 'Times New Roman', serif;
-  font-size: 30px;
-  font-weight: 500;
-  letter-spacing: -0.01em;
-  color: #ece2c8;
+  font-family: inherit;
+  font-size: 27px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: #1a1712;
 }
 
 .textarea {
@@ -38,18 +38,18 @@
   resize: vertical;
   min-height: 120px;
   padding: 14px;
-  background: #16120d;
-  color: #ece2c8;
-  border: 1px solid rgba(233, 222, 198, 0.18);
+  background: #f5f4f1;
+  color: #1a1712;
+  border: 1px solid rgba(40, 30, 16, 0.18);
   border-radius: 14px;
   font-family: inherit;
   font-size: 16px;
   line-height: 1.45;
-  color-scheme: dark;
+  color-scheme: light;
 }
 
-.textarea::placeholder { color: rgba(236, 226, 200, 0.32); }
-.textarea:focus { outline: none; border-color: #c89b54; }
+.textarea::placeholder { color: rgba(34, 27, 19, 0.32); }
+.textarea:focus { outline: none; border-color: #b34f63; }
 
 .send {
   width: 100%;
@@ -58,18 +58,18 @@
   border: none;
   border-radius: 14px;
   padding: 15px;
-  background: #c89b54;
-  color: #1b1206;
-  font-family: 'Cormorant Garamond', serif;
-  font-size: 19px;
-  font-weight: 600;
+  background: #b34f63;
+  color: #ffffff;
+  font-family: inherit;
+  font-size: 16px;
+  font-weight: 700;
   letter-spacing: 0.01em;
   cursor: pointer;
   transition: background 0.15s ease, opacity 0.15s ease;
 }
 
-.send:active:not(:disabled) { background: #d8b06a; }
-.send:disabled { background: rgba(236, 226, 200, 0.14); color: rgba(236, 226, 200, 0.45); cursor: not-allowed; }
+.send:active:not(:disabled) { background: #9a3c52; }
+.send:disabled { background: rgba(34, 27, 19, 0.14); color: rgba(34, 27, 19, 0.45); cursor: not-allowed; }
 
 .history { margin-top: 30px; }
 
@@ -79,7 +79,7 @@
   font-weight: 600;
   letter-spacing: 0.14em;
   text-transform: uppercase;
-  color: rgba(236, 226, 200, 0.5);
+  color: rgba(34, 27, 19, 0.5);
 }
 
 .card {
@@ -91,15 +91,15 @@
   color: inherit;
   padding: 14px;
   margin-bottom: 12px;
-  background: #16120d;
-  border: 1px solid rgba(233, 222, 198, 0.1);
+  background: #f5f4f1;
+  border: 1px solid rgba(40, 30, 16, 0.1);
   border-radius: 14px;
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
   transition: border-color 0.15s ease, transform 0.12s ease;
 }
 
-.card:active { transform: scale(0.99); border-color: rgba(200, 155, 84, 0.4); }
+.card:active { transform: scale(0.99); border-color: rgba(179, 79, 99, 0.4); }
 
 .cardTop {
   display: flex;
@@ -115,16 +115,16 @@
   font-weight: 600;
 }
 
-.badgeRun { background: rgba(200, 155, 84, 0.16); border: 1px solid rgba(200, 155, 84, 0.4); color: #d8b06a; }
-.badgeDone { background: rgba(127, 170, 106, 0.14); border: 1px solid rgba(127, 170, 106, 0.4); color: #9ec487; }
+.badgeRun { background: rgba(179, 79, 99, 0.16); border: 1px solid rgba(179, 79, 99, 0.4); color: #9a3c52; }
+.badgeDone { background: rgba(127, 170, 106, 0.14); border: 1px solid rgba(127, 170, 106, 0.4); color: #3f7d35; }
 
-.cardTime { font-size: 12.5px; color: rgba(236, 226, 200, 0.42); }
+.cardTime { font-size: 12.5px; color: rgba(34, 27, 19, 0.42); }
 
 .cardText {
   margin: 0 0 10px;
   font-size: 14.5px;
   line-height: 1.4;
-  color: rgba(236, 226, 200, 0.82);
+  color: rgba(34, 27, 19, 0.82);
   white-space: pre-wrap;
   word-break: break-word;
   display: -webkit-box;
@@ -142,21 +142,21 @@
   font-weight: 600;
 }
 
-.statOk { color: #9ec487; }
-.statFail { color: #d98a7f; }
-.statTotal { color: rgba(236, 226, 200, 0.45); font-weight: 500; }
+.statOk { color: #3f7d35; }
+.statFail { color: #c0392b; }
+.statTotal { color: rgba(34, 27, 19, 0.45); font-weight: 500; }
 
 .progress {
   margin-top: 10px;
   height: 4px;
   border-radius: 999px;
-  background: rgba(236, 226, 200, 0.1);
+  background: rgba(34, 27, 19, 0.1);
   overflow: hidden;
 }
 
 .progressBar {
   height: 100%;
-  background: #c89b54;
+  background: #b34f63;
   border-radius: 999px;
   transition: width 0.4s ease;
 }
@@ -167,11 +167,11 @@
   border: none;
   border-radius: 13px;
   padding: 14px;
-  background: #c89b54;
-  color: #1b1206;
-  font-family: 'Cormorant Garamond', serif;
-  font-size: 18px;
-  font-weight: 600;
+  background: #b34f63;
+  color: #ffffff;
+  font-family: inherit;
+  font-size: 16px;
+  font-weight: 700;
   cursor: pointer;
 }
 
@@ -191,7 +191,7 @@
   font-weight: 600;
   letter-spacing: 0.12em;
   text-transform: uppercase;
-  color: rgba(236, 226, 200, 0.5);
+  color: rgba(34, 27, 19, 0.5);
 }
 
 .recipient {
@@ -199,7 +199,7 @@
   align-items: center;
   gap: 10px;
   padding: 11px 2px;
-  border-top: 1px solid rgba(233, 222, 198, 0.07);
+  border-top: 1px solid rgba(40, 30, 16, 0.07);
 }
 
 .dot {
@@ -210,13 +210,13 @@
 }
 
 .dotOk { background: #7faa6a; }
-.dotFail { background: #d98a7f; }
+.dotFail { background: #c0392b; }
 
 .recipientName {
   flex: 1 1 auto;
   min-width: 0;
   font-size: 14.5px;
-  color: #ece2c8;
+  color: #1a1712;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -227,7 +227,7 @@
   min-width: 0;
   max-width: 55%;
   font-size: 13px;
-  color: #c89b54;
+  color: #b34f63;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -238,7 +238,7 @@
   width: 60%;
   margin: 14px 0;
   border-radius: 6px;
-  background: linear-gradient(100deg, #16120d 28%, #241d12 48%, #16120d 68%);
+  background: linear-gradient(100deg, #f5f4f1 28%, #e7e3dd 48%, #f5f4f1 68%);
   background-size: 220% 100%;
   animation: bSkel 1.3s linear infinite;
 }

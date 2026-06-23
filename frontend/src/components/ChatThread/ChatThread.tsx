@@ -28,6 +28,8 @@ type Props = {
   onMeta?: (raw: unknown) => void;
   /** Called right after a message is sent, so the parent can update the inbox. */
   onSent?: (msg: ChatMessage) => void;
+  /** Colour theme. Admin thread stays dark; the user chat is light. */
+  theme?: 'light' | 'dark';
   /** Add device safe-area padding under the composer. Off when a bottom nav sits below it. */
   bottomSafe?: boolean;
 };
@@ -55,7 +57,7 @@ function ArrowUp() {
   );
 }
 
-export const ChatThread: FC<Props> = ({ basePath, mySide, emptyHint, onMeta, onSent, bottomSafe = true }) => {
+export const ChatThread: FC<Props> = ({ basePath, mySide, emptyHint, onMeta, onSent, theme = 'dark', bottomSafe = true }) => {
   const queryClient = useQueryClient();
   const queryKey = ['chat', basePath] as const;
   const [text, setText] = useState('');
@@ -134,7 +136,7 @@ export const ChatThread: FC<Props> = ({ basePath, mySide, emptyHint, onMeta, onS
   }
 
   return (
-    <div className={s.thread}>
+    <div className={theme === 'light' ? `${s.thread} ${s.threadLight}` : s.thread}>
       <div className={mySide === 'admin' ? `${s.scroll} ${s.scrollAdmin}` : s.scroll} ref={scrollRef}>
         {!loaded && SKELETON.map((b, i) => (
           <div key={i} className={`${s.row} ${b.mine ? s.mine : s.theirs}`} aria-hidden>

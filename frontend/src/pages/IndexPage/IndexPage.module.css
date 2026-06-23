@@ -1,24 +1,22 @@
 /* ============================================================
-   Baxtiyor Oila — landing
-   Design system: warm dark ground · single gold accent ·
-   Cormorant Garamond (display) + Manrope (UI). One card style,
-   one row pattern, one accent. Quiet, premium, minimal.
+   Baxtiyor Oila — landing (modern mobile-app style)
+   Pure white ground · soft warm-gray cards · gold accent ·
+   Manrope only, bold type scale.
    ============================================================ */
 
 .root {
-  /* light theme — warm ivory ground · brass accent */
-  --bg:        #f5efe3;
-  --surface:   #ffffff;
-  --surface-2: #faf2e3;
-  --line:      rgba(43, 33, 18, 0.10);
-  --line-2:    rgba(43, 33, 18, 0.16);
-  --text:      #2b2117;
-  --text-soft: rgba(43, 33, 23, 0.62);
-  --text-mute: rgba(43, 33, 23, 0.42);
-  --gold:      #b5863a;   /* brass — buttons, borders, large display accents */
-  --gold-2:    #caa056;   /* lighter brass — hover/glow */
-  --gold-ink:  #8a6217;   /* deep brass — small text accents (contrast on ivory) */
-  --on-gold:   #fffaf0;   /* text/icons sitting on a brass surface */
+  --bg:          #ffffff;
+  --card:        #f5f4f1;
+  --card-press:  #efeee9;
+  --line:        rgba(28, 22, 12, 0.07);
+  --text:        #1a1712;
+  --text-2:      #6b6457;
+  --muted:       #a39b8d;
+  /* romantic rose — ties to the floral logo (wedding / couples) */
+  --accent:      #b34f63;   /* rose — buttons, badges, prices */
+  --accent-ink:  #9a3c52;   /* deep rose — small text accents (contrast on white) */
+  --accent-soft: #fbe9ed;   /* blush — soft fills */
+  --on-accent:   #ffffff;
 
   position: relative;
   display: flex;
@@ -30,51 +28,22 @@
   font-family: 'Manrope', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  padding-top: calc(
-    var(--tg-viewport-safe-area-inset-top, 0px) +
-    var(--tg-viewport-content-safe-area-inset-top, 0px) + 44px
-  );
-  padding-right: calc(var(--tg-viewport-content-safe-area-inset-right, 0px) + 22px);
-  padding-bottom: calc(var(--tg-viewport-safe-area-inset-bottom, 0px) + 56px);
-  padding-left: calc(var(--tg-viewport-content-safe-area-inset-left, 0px) + 22px);
+  padding: calc(var(--tg-viewport-safe-area-inset-top, 0px) + var(--tg-viewport-content-safe-area-inset-top, 0px) + 26px)
+    calc(var(--tg-viewport-content-safe-area-inset-right, 0px) + 20px)
+    calc(var(--tg-viewport-safe-area-inset-bottom, 0px) + 48px)
+    calc(var(--tg-viewport-content-safe-area-inset-left, 0px) + 20px);
   overflow-x: hidden;
-  isolation: isolate;
 }
 
-/* one faint warm halo behind the hero — the only soft light */
-.vignette {
-  position: absolute;
-  inset: 0;
-  z-index: -1;
-  pointer-events: none;
-  background: radial-gradient(120% 40% at 50% 0%, rgba(181, 134, 58, 0.14), transparent 64%);
-}
-
-/* hero -------------------------------------------------------- */
+/* ───── hero ───── */
 .hero {
   display: flex;
   flex-direction: column;
   align-items: center;
   text-align: center;
+  padding: 16px 0 8px;
 }
 
-.brand {
-  margin: 16px 0 0;
-  font-family: 'Cormorant Garamond', 'Times New Roman', serif;
-  font-size: 34px;
-  font-weight: 500;
-  line-height: 1;
-  letter-spacing: -0.01em;
-  color: var(--text);
-}
-
-.brandItalic {
-  font-style: italic;
-  color: var(--gold);
-}
-
-/* opening: wrapper zooms the logo down from the centre while its
-   reserved height collapses, pulling the content below up into place */
 .logoWrap {
   display: flex;
   justify-content: center;
@@ -83,54 +52,60 @@
 }
 
 .logo {
-  width: 104px;
-  height: 104px;
-  border-radius: 50%;
+  width: 92px;
+  height: 92px;
+  border-radius: 28px;
   object-fit: cover;
   background: #fff;
-  /* subtle medallion frame: soft gold hairline → ivory gap → faint outer ring */
   box-shadow:
-    0 0 0 1px rgba(181, 134, 58, 0.45),
-    0 0 0 4px var(--bg),
-    0 0 0 5px rgba(181, 134, 58, 0.18),
-    0 16px 32px -18px rgba(70, 50, 20, 0.30);
+    0 0 0 1px var(--line),
+    0 12px 30px -14px rgba(60, 44, 16, 0.35);
 }
+
+.brand {
+  margin: 18px 0 0;
+  font-size: 27px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: var(--text);
+}
+
+.brandItalic { color: var(--accent); }
 
 .tagline {
-  margin: 10px 0 0;
-  max-width: 28ch;
-  font-size: 14px;
+  margin: 8px 0 0;
+  max-width: 30ch;
+  font-size: 15px;
+  font-weight: 500;
   line-height: 1.5;
-  color: var(--text-soft);
+  color: var(--text-2);
 }
 
-/* primary CTA ------------------------------------------------- */
+/* ───── primary CTA ───── */
 .cta {
   appearance: none;
   cursor: pointer;
-  margin: 28px 0 0;
+  margin: 24px 0 0;
   width: 100%;
-  max-width: 320px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 12px;
-  padding: 16px 22px;
+  gap: 10px;
+  padding: 0 20px;
+  height: 56px;
   border: none;
-  border-radius: 13px;
-  background: var(--gold);
-  color: var(--on-gold);
-  font-family: 'Cormorant Garamond', serif;
-  font-size: 20px;
-  font-weight: 600;
+  border-radius: 16px;
+  background: var(--accent);
+  color: var(--on-accent);
+  font-family: inherit;
+  font-size: 16px;
+  font-weight: 700;
   letter-spacing: 0.01em;
-  box-shadow: 0 10px 24px -12px rgba(140, 100, 30, 0.55);
-  transition: background 0.18s ease, transform 0.12s ease;
+  transition: transform 0.12s ease, background 0.15s ease;
 }
 
-.cta:hover { background: var(--gold-2); }
-.cta:active { transform: scale(0.99); }
-.cta:focus-visible { outline: 2px solid var(--gold); outline-offset: 3px; }
+.cta:active { transform: scale(0.98); }
+.cta:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
 
 .ctaArrow {
   display: inline-flex;
@@ -139,93 +114,61 @@
   width: 24px;
   height: 24px;
   border-radius: 50%;
-  background: rgba(255, 255, 255, 0.20);
+  background: rgba(255, 255, 255, 0.22);
 }
 
 .ctaHint {
   margin: 12px 0 0;
   font-size: 13px;
-  letter-spacing: 0.02em;
-  color: var(--text-mute);
+  font-weight: 500;
+  color: var(--muted);
 }
 
-/* section shell ---------------------------------------------- */
-.block {
-  margin-top: 44px;
-}
+/* ───── sections ───── */
+.block { margin-top: 38px; }
 
-/* scroll reveal: hidden until .shown is toggled by IntersectionObserver */
 .reveal {
   opacity: 0;
-  transform: translateY(28px);
+  transform: translateY(22px);
   transition:
-    opacity 650ms cubic-bezier(0.2, 0.8, 0.2, 1),
-    transform 650ms cubic-bezier(0.2, 0.8, 0.2, 1);
+    opacity 560ms cubic-bezier(0.2, 0.8, 0.2, 1),
+    transform 560ms cubic-bezier(0.2, 0.8, 0.2, 1);
   will-change: opacity, transform;
 }
 
-.shown {
-  opacity: 1;
-  transform: none;
-}
+.shown { opacity: 1; transform: none; }
 
-.eyebrow {
-  margin: 0 0 8px;
-  font-size: 13px;
-  font-weight: 600;
-  letter-spacing: 0.2em;
-  text-transform: uppercase;
-  color: var(--gold-ink);
-}
-
-.blockTitle {
-  margin: 0 0 18px;
-  font-family: 'Cormorant Garamond', serif;
-  font-weight: 500;
-  font-size: 27px;
-  line-height: 1.1;
-  letter-spacing: -0.01em;
+.sectionTitle {
+  margin: 0 0 14px;
+  font-size: 21px;
+  font-weight: 800;
+  letter-spacing: -0.015em;
   color: var(--text);
 }
 
-/* the one card + one row system ------------------------------ */
-.card {
-  list-style: none;
-  margin: 0;
-  padding: 0 18px;
-  border-radius: 16px;
-  background: var(--surface);
-  border: 1px solid var(--line);
-}
+.eyebrow { display: none; } /* not used in the app layout */
 
-.row {
+/* ───── steps ───── */
+.steps {
   display: flex;
-  align-items: center;
-  gap: 16px;
-  padding: 18px 0;
-  border-top: 1px solid var(--line);
+  flex-direction: column;
+  gap: 10px;
 }
 
-.card > .row:first-child { border-top: none; }
-
-.rowFeatured {
-  margin: 0 -18px;
-  padding-left: 16px;
-  padding-right: 18px;
-  border-left: 2px solid var(--gold);
-  background: var(--surface-2);
-  border-radius: 0 0 16px 16px;
-}
-
+/* step number — filled rose circle with a white number */
 .num {
   flex: none;
-  width: 2.2ch;
-  font-family: 'Cormorant Garamond', serif;
-  font-style: italic;
-  font-size: 22px;
-  font-weight: 500;
-  color: var(--gold);
-  line-height: 1;
+  width: 40px;
+  height: 40px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: var(--accent);
+  color: var(--on-accent);
+  font-size: 16px;
+  font-weight: 800;
+  letter-spacing: -0.01em;
 }
 
 .rowMain {
@@ -237,171 +180,101 @@
 }
 
 .rowName {
-  font-family: 'Cormorant Garamond', serif;
-  font-size: 21px;
-  font-weight: 500;
-  line-height: 1.15;
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 1.2;
   color: var(--text);
 }
 
 .rowDesc {
-  font-size: 13.5px;
-  line-height: 1.45;
-  color: var(--text-soft);
-}
-
-.price {
-  flex: none;
-  font-family: 'Cormorant Garamond', serif;
-  font-style: italic;
-  font-size: 20px;
+  font-size: 14px;
   font-weight: 500;
-  color: var(--gold);
-  letter-spacing: -0.01em;
+  line-height: 1.45;
+  color: var(--text-2);
 }
 
-/* contact row uses the card/row shell with a tap target ------ */
-.contact {
-  appearance: none;
-  border: none;
-  background: transparent;
-  width: 100%;
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  padding: 0;
-  cursor: pointer;
-  color: inherit;
-  font-family: inherit;
-  text-align: left;
-}
-
-.contactArrow {
-  flex: none;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  border: 1px solid var(--line-2);
-  color: var(--text-soft);
-  transition: background 0.18s ease, color 0.18s ease, border-color 0.18s ease;
-}
-
-.contact:hover .contactArrow {
-  background: var(--gold);
-  color: #1b1206;
-  border-color: var(--gold);
-}
-
-/* hadith ------------------------------------------------------ */
+/* ───── hadith ───── */
 .quote {
   position: relative;
   margin: 0;
-  padding: 30px 24px 24px;
-  border-radius: 16px;
-  background: var(--surface);
-  border: 1px solid var(--line);
-  text-align: center;
+  padding: 22px 20px 20px;
+  border-radius: 20px;
+  background: var(--accent-soft);
 }
 
 .quoteMark {
   position: absolute;
-  top: 6px;
-  left: 18px;
+  top: 4px;
+  left: 16px;
   font-family: 'Cormorant Garamond', serif;
-  font-size: 56px;
+  font-size: 60px;
   line-height: 1;
-  color: var(--gold);
-  opacity: 0.5;
+  color: var(--accent);
+  opacity: 0.4;
 }
 
 .quoteText {
   position: relative;
-  margin: 0 0 14px;
-  font-family: 'Cormorant Garamond', serif;
-  font-style: italic;
-  font-size: 22px;
-  line-height: 1.4;
+  margin: 0 0 12px;
+  font-size: 17px;
+  font-weight: 600;
+  line-height: 1.5;
   color: var(--text);
 }
 
 .quoteCite {
-  font-style: normal;
-  font-size: 13px;
-  letter-spacing: 0.14em;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
   text-transform: uppercase;
-  color: var(--gold-ink);
+  color: var(--accent-ink);
 }
 
-/* admin pill (only visible to admins) ------------------------ */
-.adminPill {
-  appearance: none;
-  margin: 36px auto 0;
-  display: inline-flex;
-  align-items: center;
-  gap: 10px;
-  padding: 11px 16px;
-  border-radius: 12px;
-  border: 1px solid var(--line-2);
-  background: var(--surface);
-  color: var(--gold);
-  font-family: 'Manrope', sans-serif;
-  font-size: 13.5px;
-  font-weight: 500;
-  letter-spacing: 0.03em;
-  cursor: pointer;
-  transition: border-color 0.18s ease;
-}
-
-.adminPill:hover { border-color: var(--gold); }
-
-.adminDot {
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
-  background: var(--gold);
-}
-
-/* footer ------------------------------------------------------ */
-.footer {
-  margin-top: 48px;
+/* ───── pricing ───── */
+.tiers {
   display: flex;
   flex-direction: column;
+  gap: 10px;
+}
+
+.row {
+  display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 14px;
+  padding: 16px;
+  border-radius: 18px;
+  background: var(--card);
+}
+
+/* price — rose-filled pill with white text, matching the step number circle */
+.price {
+  flex: none;
+  padding: 8px 15px;
+  border-radius: 999px;
+  background: var(--accent);
+  color: var(--on-accent);
+  font-size: 16px;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+}
+
+/* ───── footer ───── */
+.footer {
+  margin-top: 44px;
+  display: flex;
+  justify-content: center;
 }
 
 .footerText {
   font-size: 13px;
-  letter-spacing: 0.04em;
-  color: var(--text-mute);
+  font-weight: 500;
+  color: var(--muted);
 }
 
-/* top & bottom fades — content dissolves into the background at the edges */
-.fadeTop,
-.fadeBottom {
-  position: fixed;
-  left: 0;
-  right: 0;
-  pointer-events: none;
-  z-index: 6;
-}
+/* fades not used in the app layout */
+.fadeTop, .fadeBottom, .vignette { display: none; }
 
-.fadeTop {
-  top: 0;
-  height: 60px;
-  background: linear-gradient(to bottom, var(--bg) 36%, rgba(245, 239, 227, 0));
-}
-
-.fadeBottom {
-  bottom: 0;
-  height: 120px;
-  background: linear-gradient(to top, var(--bg) 28%, rgba(245, 239, 227, 0));
-}
-
-/* secondary FAB (admins only) — anketa panel, stacked above the chat FAB */
+/* ───── FABs ───── */
 .anketaFab {
   position: fixed;
   right: calc(var(--tg-viewport-content-safe-area-inset-right, 0px) + 18px);
@@ -414,18 +287,18 @@
   justify-content: center;
   appearance: none;
   border-radius: 50%;
-  border: 1px solid rgba(200, 155, 84, 0.55);
-  background: var(--surface);
-  color: var(--gold);
+  border: 1px solid var(--line);
+  background: #ffffff;
+  color: var(--accent-ink);
   cursor: pointer;
+  box-shadow: 0 8px 20px -10px rgba(60, 44, 16, 0.3);
   -webkit-tap-highlight-color: transparent;
-  transition: background 0.15s ease, transform 0.12s ease;
+  transition: transform 0.12s ease;
 }
 
 .anketaFab:active { transform: scale(0.93); }
 .animateIntro .anketaFab { animation: fabIn 0.5s 2150ms backwards; }
 
-/* floating chat button (bottom-right) ------------------------- */
 .chatFab {
   position: fixed;
   right: calc(var(--tg-viewport-content-safe-area-inset-right, 0px) + 18px);
@@ -439,20 +312,16 @@
   appearance: none;
   border: none;
   border-radius: 50%;
-  background: var(--gold);
-  color: var(--on-gold);
+  background: var(--accent);
+  color: var(--on-accent);
   cursor: pointer;
-  transition: background 0.15s ease, transform 0.12s ease;
-  animation: fabPulse 2.4s ease-in-out infinite;
+  box-shadow: 0 10px 24px -10px rgba(120, 48, 64, 0.5);
+  transition: transform 0.12s ease;
+  animation: fabPulse 2.6s ease-in-out infinite;
 }
 
-.chatFab:hover { background: var(--gold-2); }
 .chatFab:active { transform: scale(0.95); }
-
-/* on first load, the button appears only after the opening animation */
-.animateIntro .chatFab {
-  animation: fabIn 0.5s 2000ms backwards, fabPulse 2.4s 2300ms ease-in-out infinite;
-}
+.animateIntro .chatFab { animation: fabIn 0.5s 2000ms backwards, fabPulse 2.6s 2300ms ease-in-out infinite; }
 
 @keyframes fabIn {
   from { opacity: 0; transform: scale(0.6); }
@@ -460,29 +329,15 @@
 }
 
 @keyframes fabPulse {
-  0% {
-    box-shadow:
-      0 10px 24px -10px rgba(140, 100, 30, 0.45),
-      0 0 0 0 rgba(181, 134, 58, 0.45);
-  }
-  70% {
-    box-shadow:
-      0 10px 24px -10px rgba(140, 100, 30, 0.45),
-      0 0 0 14px rgba(181, 134, 58, 0);
-  }
-  100% {
-    box-shadow:
-      0 10px 24px -10px rgba(140, 100, 30, 0.45),
-      0 0 0 0 rgba(181, 134, 58, 0);
-  }
+  0%   { box-shadow: 0 10px 24px -10px rgba(120, 48, 64, 0.5), 0 0 0 0 rgba(179, 79, 99, 0.4); }
+  70%  { box-shadow: 0 10px 24px -10px rgba(120, 48, 64, 0.5), 0 0 0 14px rgba(179, 79, 99, 0); }
+  100% { box-shadow: 0 10px 24px -10px rgba(120, 48, 64, 0.5), 0 0 0 0 rgba(179, 79, 99, 0); }
 }
 
-/* motion ------------------------------------------------------ */
-
-/* opening: logo enters large and centred, zooms out to the header */
+/* ───── opening: logo zooms in big from the centre, then content settles ───── */
 @keyframes logoZoom {
   from { transform: scale(3.2); height: 64vh; }
-  to   { transform: scale(1);   height: 104px; }
+  to   { transform: scale(1);   height: 92px; }
 }
 
 @keyframes rise {
@@ -495,22 +350,18 @@
   to   { opacity: 1; }
 }
 
-/* opening sequence — runs only on a real page load (.animateIntro on root).
-   The logo zooms down from the centre, then title/tagline/CTA settle in. */
-.animateIntro .logoWrap {
-  animation: logoZoom 1800ms cubic-bezier(0.645, 0.045, 0.355, 1) both;
-}
-.animateIntro .brand   { animation: rise 700ms cubic-bezier(0.645, 0.045, 0.355, 1) 1100ms both; }
-.animateIntro .tagline { animation: rise 700ms cubic-bezier(0.645, 0.045, 0.355, 1) 1250ms both; }
-.animateIntro .cta     { animation: fadeIn 700ms ease 1400ms both; }
-.animateIntro .ctaHint { animation: rise 700ms cubic-bezier(0.645, 0.045, 0.355, 1) 1520ms both; }
+.animateIntro .logoWrap { animation: logoZoom 1800ms cubic-bezier(0.645, 0.045, 0.355, 1) both; }
+.animateIntro .brand    { animation: rise 700ms cubic-bezier(0.645, 0.045, 0.355, 1) 1100ms both; }
+.animateIntro .tagline  { animation: rise 700ms cubic-bezier(0.645, 0.045, 0.355, 1) 1250ms both; }
+.animateIntro .cta      { animation: fadeIn 700ms ease 1400ms both; }
+.animateIntro .ctaHint  { animation: rise 700ms cubic-bezier(0.645, 0.045, 0.355, 1) 1520ms both; }
 
 @media (prefers-reduced-motion: reduce) {
+  .reveal { opacity: 1; transform: none; transition: none; }
   .animateIntro .logoWrap,
   .animateIntro .brand,
   .animateIntro .tagline,
   .animateIntro .cta,
   .animateIntro .ctaHint { animation: none; }
-  .chatFab, .animateIntro .chatFab { animation: none; opacity: 1; }
-  .reveal { opacity: 1; transform: none; transition: none; }
+  .chatFab, .animateIntro .chatFab { animation: none; }
 }

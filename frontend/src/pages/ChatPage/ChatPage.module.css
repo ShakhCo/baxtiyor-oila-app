@@ -117,6 +117,44 @@
 
 .handle { color: #c89b54; }
 
+/* ───── light theme (user chat only; admin thread stays dark) ───── */
+.light {
+  background: #ffffff;
+  color: #1a1712;
+}
+
+.light .header {
+  background: rgba(255, 255, 255, 0.7);
+}
+
+.light .header::after {
+  background: linear-gradient(90deg, transparent, rgba(40, 30, 16, 0.14), transparent);
+}
+
+.light .name {
+  font-family: 'Manrope', -apple-system, sans-serif;
+  font-weight: 700;
+  font-size: 18px;
+  letter-spacing: -0.01em;
+  color: #1a1712;
+}
+
+.light .status { color: rgba(34, 27, 19, 0.5); }
+.light .handle { color: #b34f63; }
+
+.light .avatarInitials {
+  background: #fbe9ed;
+  border-color: rgba(179, 79, 99, 0.3);
+  color: #9a3c52;
+}
+
+.light .skelName,
+.light .skelStatus,
+.light .skelTag {
+  background: linear-gradient(100deg, #efece8 28%, #e3dfd9 48%, #efece8 68%);
+  background-size: 220% 100%;
+}
+
 /* header skeleton — shown until the user's name/handle loads */
 .skelName,
 .skelStatus,
@@ -160,9 +198,9 @@
   align-items: center;
   gap: 4px;
   appearance: none;
-  border: 1px solid rgba(200, 155, 84, 0.5);
-  background: rgba(200, 155, 84, 0.14);
-  color: #d8b06a;
+  border: 1px solid rgba(179, 79, 99, 0.5);
+  background: #fbe9ed;
+  color: #9a3c52;
   border-radius: 999px;
   padding: 7px 10px;
   cursor: pointer;
@@ -171,7 +209,7 @@
 .tagCount {
   font-size: 12px;
   font-weight: 700;
-  color: #d8b06a;
+  color: #9a3c52;
 }
 
 .sheetBackdrop {
@@ -180,7 +218,7 @@
   z-index: 50;
   display: flex;
   align-items: flex-end;
-  background: rgba(0, 0, 0, 0.55);
+  background: rgba(26, 18, 14, 0.4);
   -webkit-backdrop-filter: blur(2px);
   backdrop-filter: blur(2px);
   animation: fadeIn 0.18s ease both;
@@ -189,8 +227,8 @@
 .sheet {
   width: 100%;
   box-sizing: border-box;
-  background: #16120d;
-  border-top: 1px solid rgba(233, 222, 198, 0.14);
+  background: #ffffff;
+  border-top: 1px solid rgba(40, 30, 16, 0.1);
   border-radius: 22px 22px 0 0;
   padding: 22px 20px calc(var(--tg-viewport-safe-area-inset-bottom, 0px) + 22px);
   animation: sheetUp 0.24s cubic-bezier(0.2, 0.8, 0.2, 1) both;
@@ -198,16 +236,16 @@
 
 .sheetTitle {
   margin: 0 0 14px;
-  font-family: 'Cormorant Garamond', serif;
-  font-size: 24px;
-  font-weight: 600;
-  color: #ece2c8;
+  font-size: 20px;
+  font-weight: 800;
+  letter-spacing: -0.015em;
+  color: #1a1712;
 }
 
 .sheetHint {
   margin: 0 0 14px;
   font-size: 13.5px;
-  color: rgba(236, 226, 200, 0.5);
+  color: rgba(34, 27, 19, 0.5);
 }
 
 .chipRow {
@@ -224,9 +262,9 @@
   gap: 6px;
   padding: 6px 12px;
   border-radius: 999px;
-  background: rgba(200, 155, 84, 0.16);
-  border: 1px solid rgba(200, 155, 84, 0.35);
-  color: #d8b06a;
+  background: #fbe9ed;
+  border: 1px solid rgba(179, 79, 99, 0.35);
+  color: #9a3c52;
   font-family: inherit;
   font-size: 13.5px;
   font-weight: 600;
@@ -246,16 +284,16 @@
   appearance: none;
   box-sizing: border-box;
   padding: 12px 14px;
-  background: #1d180f;
-  color: #ece2c8;
-  border: 1px solid rgba(233, 222, 198, 0.18);
+  background: #f4f2ee;
+  color: #1a1712;
+  border: 1px solid rgba(40, 30, 16, 0.14);
   border-radius: 13px;
   font-family: inherit;
   font-size: 16px;
 }
 
-.labelInput::placeholder { color: rgba(236, 226, 200, 0.32); }
-.labelInput:focus { outline: none; border-color: #c89b54; }
+.labelInput::placeholder { color: rgba(34, 27, 19, 0.34); }
+.labelInput:focus { outline: none; border-color: #b34f63; }
 
 .addBtn {
   flex: none;
@@ -263,11 +301,11 @@
   border: none;
   padding: 0 18px;
   border-radius: 13px;
-  background: #c89b54;
-  color: #1b1206;
-  font-family: 'Cormorant Garamond', serif;
-  font-size: 17px;
-  font-weight: 600;
+  background: #b34f63;
+  color: #ffffff;
+  font-family: inherit;
+  font-size: 15px;
+  font-weight: 700;
   cursor: pointer;
   transition: background 0.15s ease, opacity 0.15s ease;
 }
@@ -285,24 +323,24 @@
   padding: 7px 13px;
   border-radius: 999px;
   background: transparent;
-  border: 1px dashed rgba(233, 222, 198, 0.22);
-  color: rgba(236, 226, 200, 0.7);
+  border: 1px dashed rgba(40, 30, 16, 0.22);
+  color: rgba(34, 27, 19, 0.7);
   font-family: inherit;
   font-size: 13.5px;
-  font-weight: 500;
+  font-weight: 600;
   cursor: pointer;
   transition: border-color 0.15s ease, color 0.15s ease;
 }
 
-.preset:hover { border-color: #c89b54; color: #d8b06a; }
+.preset:hover { border-color: #b34f63; color: #9a3c52; }
 
 .sheetClose {
   width: 100%;
   margin-top: 20px;
   appearance: none;
-  border: 1px solid rgba(233, 222, 198, 0.16);
+  border: 1px solid rgba(40, 30, 16, 0.16);
   background: transparent;
-  color: rgba(236, 226, 200, 0.7);
+  color: rgba(34, 27, 19, 0.7);
   border-radius: 13px;
   padding: 13px;
   font-family: inherit;

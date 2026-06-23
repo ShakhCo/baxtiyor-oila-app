@@ -2,8 +2,8 @@
   position: relative;
   min-height: 100vh;
   min-height: 100dvh;
-  background: #0d0b08;
-  color: #ece2c8;
+  background: #ffffff;
+  color: #1a1712;
   font-family: 'Manrope', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
   -webkit-font-smoothing: antialiased;
   /* NOTE: never set overflow-x here — it makes .root a scroll container and
@@ -28,14 +28,14 @@
 .fadeTop {
   top: 0;
   height: calc(var(--tg-viewport-safe-area-inset-top, 0px) + var(--tg-viewport-content-safe-area-inset-top, 0px) + 8px);
-  background: #0d0b08;
+  background: #ffffff;
   z-index: 7;
 }
 
 .fadeBottom {
   bottom: 0;
   height: calc(var(--tg-viewport-safe-area-inset-bottom, 0px) + 70px);
-  background: linear-gradient(to top, #0d0b08 40%, rgba(13, 11, 8, 0));
+  background: linear-gradient(to top, #ffffff 40%, rgba(255, 255, 255, 0));
 }
 
 /* header */
@@ -53,25 +53,25 @@
   font-weight: 600;
   letter-spacing: 0.14em;
   text-transform: uppercase;
-  color: #d8b06a;
+  color: #9a3c52;
 }
 
 .title {
   margin: 0;
-  font-family: 'Cormorant Garamond', 'Times New Roman', serif;
-  font-size: 30px;
-  font-weight: 500;
+  font-family: inherit;
+  font-size: 27px;
+  font-weight: 800;
   line-height: 1.05;
-  letter-spacing: -0.01em;
-  color: #ece2c8;
+  letter-spacing: -0.02em;
+  color: #1a1712;
 }
 
 .chatLink {
   flex: none;
   appearance: none;
-  border: 1px solid rgba(200, 155, 84, 0.5);
-  background: rgba(200, 155, 84, 0.14);
-  color: #d8b06a;
+  border: 1px solid rgba(179, 79, 99, 0.5);
+  background: rgba(179, 79, 99, 0.14);
+  color: #9a3c52;
   font-family: inherit;
   font-size: 13px;
   font-weight: 600;
@@ -94,7 +94,7 @@
      (to the list); the bottom also buffers rows scrolling under the sticky bar */
   margin: 0 -18px 10px;
   padding: 10px 18px;
-  background: #0d0b08;
+  background: #ffffff;
   scrollbar-width: none;
   -webkit-overflow-scrolling: touch;
 }
@@ -109,9 +109,9 @@
   gap: 7px;
   padding: 8px 15px;
   border-radius: 999px;
-  background: #16120d;
-  border: 1px solid rgba(233, 222, 198, 0.12);
-  color: rgba(236, 226, 200, 0.68);
+  background: #f5f4f1;
+  border: 1px solid rgba(40, 30, 16, 0.12);
+  color: rgba(34, 27, 19, 0.68);
   font-family: inherit;
   font-size: 13.5px;
   font-weight: 600;
@@ -122,9 +122,9 @@
 }
 
 .tabActive {
-  background: rgba(200, 155, 84, 0.16);
-  border-color: #c89b54;
-  color: #d8b06a;
+  background: rgba(179, 79, 99, 0.16);
+  border-color: #b34f63;
+  color: #9a3c52;
 }
 
 .tabCount {
@@ -135,13 +135,13 @@
   align-items: center;
   justify-content: center;
   border-radius: 999px;
-  background: rgba(236, 226, 200, 0.1);
+  background: rgba(34, 27, 19, 0.1);
   color: inherit;
   font-size: 12px;
   font-weight: 700;
 }
 
-.tabActive .tabCount { background: rgba(200, 155, 84, 0.28); color: #ece2c8; }
+.tabActive .tabCount { background: rgba(179, 79, 99, 0.28); color: #1a1712; }
 
 /* list */
 .list {
@@ -159,8 +159,8 @@
   justify-content: space-between;
   gap: 12px;
   padding: 14px 16px;
-  background: #16120d;
-  border: 1px solid rgba(233, 222, 198, 0.1);
+  background: #f5f4f1;
+  border: 1px solid rgba(40, 30, 16, 0.1);
   border-radius: 15px;
   color: inherit;
   font-family: inherit;
@@ -169,7 +169,7 @@
   transition: border-color 0.15s ease, transform 0.12s ease;
 }
 
-.card:active { transform: scale(0.99); border-color: rgba(200, 155, 84, 0.4); }
+.card:active { transform: scale(0.99); border-color: rgba(179, 79, 99, 0.4); }
 
 .cardMain {
   display: flex;
@@ -179,11 +179,11 @@
 }
 
 .cardName {
-  font-family: 'Cormorant Garamond', serif;
-  font-size: 21px;
-  font-weight: 600;
-  line-height: 1.1;
-  color: #ece2c8;
+  font-family: inherit;
+  font-size: 17px;
+  font-weight: 700;
+  line-height: 1.15;
+  color: #1a1712;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -192,7 +192,7 @@
 .cardLine {
   margin-top: 4px;
   font-size: 13.5px;
-  color: rgba(236, 226, 200, 0.6);
+  color: rgba(34, 27, 19, 0.6);
   line-height: 1.4;
   white-space: nowrap;
   overflow: hidden;
@@ -202,7 +202,7 @@
 .cardDate {
   margin-top: 6px;
   font-size: 12px;
-  color: rgba(236, 226, 200, 0.4);
+  color: rgba(34, 27, 19, 0.4);
   letter-spacing: 0.02em;
 }
 
@@ -222,15 +222,15 @@
   white-space: nowrap;
 }
 
-.badgePending { background: rgba(200, 155, 84, 0.16); border: 1px solid rgba(200, 155, 84, 0.4); color: #d8b06a; }
-.badgeApproved { background: rgba(127, 170, 106, 0.14); border: 1px solid rgba(127, 170, 106, 0.4); color: #9ec487; }
-.badgeRejected { background: rgba(217, 138, 127, 0.14); border: 1px solid rgba(217, 138, 127, 0.4); color: #d98a7f; }
+.badgePending { background: rgba(179, 79, 99, 0.16); border: 1px solid rgba(179, 79, 99, 0.4); color: #9a3c52; }
+.badgeApproved { background: rgba(127, 170, 106, 0.14); border: 1px solid rgba(127, 170, 106, 0.4); color: #3f7d35; }
+.badgeRejected { background: rgba(217, 138, 127, 0.14); border: 1px solid rgba(217, 138, 127, 0.4); color: #c0392b; }
 
 .tariff {
   font-size: 12px;
   font-weight: 600;
   letter-spacing: 0.05em;
-  color: rgba(236, 226, 200, 0.5);
+  color: rgba(34, 27, 19, 0.5);
   text-transform: uppercase;
 }
 
@@ -241,8 +241,8 @@
   justify-content: space-between;
   gap: 12px;
   padding: 14px 16px;
-  background: #16120d;
-  border: 1px solid rgba(233, 222, 198, 0.08);
+  background: #f5f4f1;
+  border: 1px solid rgba(40, 30, 16, 0.08);
   border-radius: 15px;
 }
 
@@ -252,7 +252,7 @@
 .skelLine,
 .skelBadge {
   border-radius: 6px;
-  background: linear-gradient(100deg, #16120d 28%, #241d12 48%, #16120d 68%);
+  background: linear-gradient(100deg, #f5f4f1 28%, #e7e3dd 48%, #f5f4f1 68%);
   background-size: 220% 100%;
   animation: aShimmer 1.3s linear infinite;
 }
@@ -271,10 +271,9 @@
 .loading {
   margin: 56px 0;
   text-align: center;
-  font-family: 'Cormorant Garamond', serif;
-  font-style: italic;
-  font-size: 18px;
-  color: rgba(236, 226, 200, 0.42);
+  font-family: inherit;
+    font-size: 18px;
+  color: rgba(34, 27, 19, 0.42);
 }
 
 .error {
@@ -283,7 +282,7 @@
   border-radius: 12px;
   background: rgba(217, 138, 127, 0.12);
   border: 1px solid rgba(217, 138, 127, 0.4);
-  color: #e5a99f;
+  color: #c0392b;
   font-size: 13.5px;
 }
 
@@ -297,17 +296,16 @@
 
 .notAuthTitle {
   margin: 0 0 8px;
-  font-family: 'Cormorant Garamond', serif;
+  font-family: inherit;
   font-size: 30px;
   font-weight: 500;
-  color: #ece2c8;
+  color: #1a1712;
 }
 
 .notAuthText {
   margin: 0;
-  font-family: 'Cormorant Garamond', serif;
-  font-style: italic;
-  font-size: 16px;
-  color: rgba(236, 226, 200, 0.5);
+  font-family: inherit;
+    font-size: 16px;
+  color: rgba(34, 27, 19, 0.5);
   line-height: 1.5;
 }

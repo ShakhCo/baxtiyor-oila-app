@@ -3,6 +3,10 @@
 .env.local
 .env.*.local
 
+archive/
+docs/
+CLAUDE.md
+
 # Python
 __pycache__/
 *.py[cod]

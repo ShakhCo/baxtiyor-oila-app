@@ -93,7 +93,7 @@ export const AdminChatThreadPage: FC = () => {
 
   return (
     <Page back>
-      <div className={s.root}>
+      <div className={`${s.root} ${s.light}`}>
         <header className={`${s.header} ${s.headerAdmin}`}>
           {metaLoaded ? (
             <>
@@ -126,6 +126,7 @@ export const AdminChatThreadPage: FC = () => {
         <ChatThread
           basePath={`/admin/chats/${telegramId}`}
           mySide="admin"
+          theme="light"
           emptyHint="Hozircha xabarlar yo‘q."
           onSent={patchListPreview}
           onMeta={(raw) => {

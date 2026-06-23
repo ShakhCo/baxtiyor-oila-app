@@ -1,19 +1,43 @@
 /* Chat thread: scrollable message list + sticky composer.
-   Shares the app's warm dark + gold system. */
+   Theme-driven via vars — dark by default (admin thread), light override below
+   (user chat) toggled by the `.threadLight` class. */
 
 .thread {
-  --c-bg:      #0d0b08;
-  --c-surface: #16120d;
-  --c-line:    rgba(233, 222, 198, 0.10);
-  --c-line-2:  rgba(233, 222, 198, 0.18);
-  --c-text:    #ece2c8;
-  --c-mute:    rgba(236, 226, 200, 0.42);
-  --c-gold:    #c89b54;
-  --c-gold-2:  #d8b06a;
+  --c-bg:       #0d0b08;
+  --c-surface:  #16120d;
+  --c-skel-hi:  #241d12;
+  --c-line:     rgba(233, 222, 198, 0.10);
+  --c-line-2:   rgba(233, 222, 198, 0.18);
+  --c-text:     #ece2c8;
+  --c-mute:     rgba(236, 226, 200, 0.42);
+  --c-placeholder: rgba(236, 226, 200, 0.32);
+  --c-accent:   #c89b54;
+  --c-accent-2: #d8b06a;
+  --c-on-accent: #1b1206;
+  --c-bar-bg:   rgba(13, 11, 8, 0.6);
+  --c-input-bg: #16120d;
 
   position: absolute;
   inset: 0;
   color-scheme: dark;
+}
+
+.threadLight {
+  --c-bg:       #ffffff;
+  --c-surface:  #f1efeb;
+  --c-skel-hi:  #e7e3dd;
+  --c-line:     rgba(40, 30, 16, 0.08);
+  --c-line-2:   rgba(40, 30, 16, 0.14);
+  --c-text:     #1a1712;
+  --c-mute:     rgba(34, 27, 19, 0.45);
+  --c-placeholder: rgba(34, 27, 19, 0.34);
+  --c-accent:   #b34f63;
+  --c-accent-2: #c4607a;
+  --c-on-accent: #ffffff;
+  --c-bar-bg:   rgba(255, 255, 255, 0.72);
+  --c-input-bg: #f4f2ee;
+
+  color-scheme: light;
 }
 
 /* full-height scroll; the glassy header/composer overlay it. Top padding clears
@@ -71,8 +95,8 @@
 }
 
 .mine .bubble {
-  background: var(--c-gold);
-  color: #1b1206;
+  background: var(--c-accent);
+  color: var(--c-on-accent);
   border-bottom-right-radius: 5px;
 }
 
@@ -82,7 +106,7 @@
 .skelBubble {
   display: block;
   border-radius: 16px;
-  background: linear-gradient(100deg, #16120d 28%, #241d12 48%, #16120d 68%);
+  background: linear-gradient(100deg, var(--c-surface) 28%, var(--c-skel-hi) 48%, var(--c-surface) 68%);
   background-size: 220% 100%;
   animation: chatSkel 1.3s linear infinite;
 }
@@ -110,7 +134,7 @@
   font-size: 13px;
   font-weight: 700;
   letter-spacing: 0.01em;
-  color: #8a1709;
+  color: #cf3a2a;
 }
 
 .time {
@@ -119,8 +143,8 @@
   opacity: 0.6;
 }
 
-/* mine bubbles are on gold — keep the timestamp legible */
-.mine .time { color: #1b1206; opacity: 0.55; }
+/* mine bubbles are on the accent — keep the timestamp legible */
+.mine .time { color: var(--c-on-accent); opacity: 0.7; }
 .theirs .time { color: var(--c-mute); }
 
 /* composer — glassy overlay pinned to the bottom; messages scroll behind it */
@@ -135,7 +159,7 @@
   gap: 10px;
   /* Telegram exposes safe areas via its own CSS vars (not env()) */
   padding: 10px 18px calc(var(--tg-viewport-safe-area-inset-bottom, 0px) + 12px);
-  background: rgba(13, 11, 8, 0.6);
+  background: var(--c-bar-bg);
   -webkit-backdrop-filter: blur(20px) saturate(1.3);
   backdrop-filter: blur(20px) saturate(1.3);
   border-top-left-radius: 12px;
@@ -150,7 +174,7 @@
   overflow-y: auto;
   box-sizing: border-box;
   padding: 12px 14px;
-  background: var(--c-surface);
+  background: var(--c-input-bg);
   color: var(--c-text);
   border: 1px solid var(--c-line-2);
   border-radius: 18px;
@@ -160,8 +184,8 @@
   transition: border-color 0.15s ease;
 }
 
-.input::placeholder { color: rgba(236, 226, 200, 0.32); }
-.input:focus { outline: none; border-color: var(--c-gold); }
+.input::placeholder { color: var(--c-placeholder); }
+.input:focus { outline: none; border-color: var(--c-accent); }
 
 .send {
   flex: none;
@@ -172,13 +196,13 @@
   justify-content: center;
   border: none;
   border-radius: 50%;
-  background: var(--c-gold);
-  color: #1b1206;
+  background: var(--c-accent);
+  color: var(--c-on-accent);
   cursor: pointer;
   transition: background 0.15s ease, opacity 0.15s ease, transform 0.1s ease;
 }
 
-.send:hover:not(:disabled) { background: var(--c-gold-2); }
+.send:hover:not(:disabled) { background: var(--c-accent-2); }
 .send:active:not(:disabled) { transform: scale(0.95); }
 .send:disabled {
   background: var(--c-surface);
@@ -186,18 +210,18 @@
   cursor: not-allowed;
 }
 
-/* while sending: stay gold and show a spinner (overrides the disabled look) */
+/* while sending: stay on the accent and show a spinner */
 .send.sending {
-  background: var(--c-gold);
-  color: #1b1206;
+  background: var(--c-accent);
+  color: var(--c-on-accent);
   cursor: default;
 }
 
 .spinner {
   width: 18px;
   height: 18px;
-  border: 2px solid rgba(27, 18, 6, 0.25);
-  border-top-color: #1b1206;
+  border: 2px solid rgba(128, 128, 128, 0.3);
+  border-top-color: currentColor;
   border-radius: 50%;
   animation: chatspin 0.7s linear infinite;
 }

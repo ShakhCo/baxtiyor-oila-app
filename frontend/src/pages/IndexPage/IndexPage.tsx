@@ -146,23 +146,13 @@ export const IndexPage: FC = () => {
   return (
     <Page back={false}>
       <div className={playIntro ? `${s.root} ${s.animateIntro}` : s.root}>
-        <div className={s.vignette} aria-hidden />
-        <div className={s.fadeTop} aria-hidden />
-        <div className={s.fadeBottom} aria-hidden />
-
         {/* hero ------------------------------------------------ */}
         <header className={s.hero}>
           <div className={s.logoWrap}>
-            <img
-              className={s.logo}
-              src="/logo.png"
-              alt=""
-              width={104}
-              height={104}
-            />
+            <img className={s.logo} src="/logo.png" alt="" width={92} height={92} />
           </div>
           <h1 className={s.brand}>
-            <span>Baxtiyor</span> <span className={s.brandItalic}>Oila</span>
+            Baxtiyor <span className={s.brandItalic}>Oila</span>
           </h1>
           <p className={s.tagline}>Halol va jiddiy juftlik tanlash xizmati</p>
 
@@ -175,19 +165,18 @@ export const IndexPage: FC = () => {
 
         {/* process -------------------------------------------- */}
         <RevealSection index={0}>
-          <p className={s.eyebrow}>Jarayon</p>
-          <h2 className={s.blockTitle}>Uch qadam</h2>
-          <ol className={s.card}>
+          <h2 className={s.sectionTitle}>Qanday ishlaydi</h2>
+          <div className={s.steps}>
             {STEPS.map(step => (
-              <li key={step.n} className={s.row}>
+              <div key={step.n} className={s.row}>
                 <span className={s.num}>{step.n}</span>
                 <div className={s.rowMain}>
                   <span className={s.rowName}>{step.title}</span>
                   <span className={s.rowDesc}>{step.desc}</span>
                 </div>
-              </li>
+              </div>
             ))}
-          </ol>
+          </div>
         </RevealSection>
 
         {/* hadith --------------------------------------------- */}
@@ -203,19 +192,18 @@ export const IndexPage: FC = () => {
 
         {/* tariffs -------------------------------------------- */}
         <RevealSection index={2}>
-          <p className={s.eyebrow}>Tariflar</p>
-          <h2 className={s.blockTitle}>Shaffof narxlar</h2>
-          <ul className={s.card}>
+          <h2 className={s.sectionTitle}>Tariflar</h2>
+          <div className={s.tiers}>
             {TIERS.map(tier => (
-              <li key={tier.name} className={tier.featured ? `${s.row} ${s.rowFeatured}` : s.row}>
+              <div key={tier.name} className={s.row}>
                 <div className={s.rowMain}>
                   <span className={s.rowName}>{tier.name}</span>
                   <span className={s.rowDesc}>{tier.desc}</span>
                 </div>
                 <span className={s.price}>{tier.price}</span>
-              </li>
+              </div>
             ))}
-          </ul>
+          </div>
         </RevealSection>
 
         {/* contact section hidden for now — chat now lives in the bottom nav; restore when needed:
