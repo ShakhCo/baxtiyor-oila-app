@@ -13,11 +13,16 @@
   overflow: hidden;
 }
 
-/* user chat presents the bottom tab bar — reserve its height so the composer
-   sits directly above it (the admin thread reuses .root without this class) */
+/* user chat presents the bottom tab bar. Pin the shell with position:fixed and
+   bottom = the tab-bar height so it ends exactly at the bar's top edge — sharing
+   the same viewport-bottom reference as the fixed bar (a 100dvh-based height can
+   drift under it in the Telegram webview, hiding the composer). The admin thread
+   reuses .root without this class, so it stays full-height. */
 .root.withNav {
-  height: calc(100vh - var(--bottom-nav-h));
-  height: calc(100dvh - var(--bottom-nav-h));
+  position: fixed;
+  inset: 0;
+  bottom: var(--bottom-nav-h);
+  height: auto;
 }
 
 /* glassy chat header overlay: centered name + status, messages scroll behind it */
