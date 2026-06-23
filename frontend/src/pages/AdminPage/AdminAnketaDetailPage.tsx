@@ -82,31 +82,20 @@ export const AdminAnketaDetailPage: FC = () => {
       .finally(() => setLoading(false));
   }, [telegramId]);
 
-  async function approve() {
+  // Move the anketa to any status. Rejecting carries the reason from the modal.
+  async function applyStatus(next: Status, withReason?: string) {
     if (!telegramId || busy) return;
     setBusy(true);
     setError(null);
     try {
-      await apiPost(`/admin/anketas/${telegramId}/approve`, {});
-      navigate('/admin');
-    } catch (err) {
-      setError(`Tasdiqlashda xatolik: ${(err as Error).message}`);
-    } finally {
-      setBusy(false);
-    }
-  }
-
-  async function reject() {
-    if (!telegramId || busy || !reason.trim()) return;
-    setBusy(true);
-    setError(null);
-    try {
-      await apiPost(`/admin/anketas/${telegramId}/reject`, { reason });
+      await apiPost(`/admin/anketas/${telegramId}/status`, {
+        status: next,
+        ...(withReason ? { reason: withReason } : {}),
+      });
       setRejectOpen(false);
       navigate('/admin');
     } catch (err) {
-      setError(`Rad etishda xatolik: ${(err as Error).message}`);
-    } finally {
+      setError(`Holatni o‘zgartirishda xatolik: ${(err as Error).message}`);
       setBusy(false);
     }
   }
@@ -138,11 +127,10 @@ export const AdminAnketaDetailPage: FC = () => {
 
   const tgHandle = data.username ? `@${data.username}` : null;
   const region = REGION_LABELS[data.birthplace_region] ?? data.birthplace_region;
-  const isPending = data.status === 'pending';
 
   return (
     <Page>
-      <div className={isPending ? s.root : `${s.root} ${s.rootFlat}`}>
+      <div className={s.root}>
         <div className={s.fadeTop} aria-hidden />
         <div className={s.fadeBottom} aria-hidden />
 
@@ -213,8 +201,19 @@ export const AdminAnketaDetailPage: FC = () => {
           <Row label="Yuborilgan">{new Date(data.created_at).toLocaleString()}</Row>
         </div>
 
-        {isPending && (
-          <div className={s.actions}>
+        {/* status controls — show the two statuses the anketa is NOT currently in */}
+        <div className={s.actions}>
+          {data.status !== 'pending' && (
+            <button
+              type="button"
+              className={`${s.btn} ${s.btnGhost}`}
+              disabled={busy}
+              onClick={() => applyStatus('pending')}
+            >
+              Kutilmoqda
+            </button>
+          )}
+          {data.status !== 'rejected' && (
             <button
               type="button"
               className={`${s.btn} ${s.btnReject}`}
@@ -223,16 +222,18 @@ export const AdminAnketaDetailPage: FC = () => {
             >
               Rad etish
             </button>
+          )}
+          {data.status !== 'approved' && (
             <button
               type="button"
               className={`${s.btn} ${s.btnApprove}`}
               disabled={busy}
-              onClick={approve}
+              onClick={() => applyStatus('approved')}
             >
               Tasdiqlash
             </button>
-          </div>
-        )}
+          )}
+        </div>
 
         {rejectOpen && (
           <div className={s.modalScrim} onClick={() => !busy && setRejectOpen(false)}>
@@ -260,7 +261,7 @@ export const AdminAnketaDetailPage: FC = () => {
                 <button
                   type="button"
                   className={`${s.btn} ${s.btnReject}`}
-                  onClick={reject}
+                  onClick={() => applyStatus('rejected', reason)}
                   disabled={busy || !reason.trim()}
                 >
                   Rad etish

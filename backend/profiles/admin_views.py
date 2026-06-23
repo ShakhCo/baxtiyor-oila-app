@@ -85,3 +85,38 @@ def reject_anketa(request, telegram_id: int):
         "status":           profile.status,
         "rejection_reason": profile.rejection_reason,
     })
+
+
+_STATUSES = {"pending", "approved", "rejected"}
+
+
+@api_view(["POST"])
+@permission_classes([IsAdmin])
+def set_anketa_status(request, telegram_id: int):
+    """Move an anketa to any status, regardless of its current one.
+
+    Rejecting requires a reason; pending/approved clear any prior reason."""
+    profile = get_object_or_404(Profile, user_id=telegram_id)
+    new_status = (request.data.get("status") or "").strip()
+    if new_status not in _STATUSES:
+        return Response(
+            {"detail": "Invalid status."},
+            status=http_status.HTTP_400_BAD_REQUEST,
+        )
+    if new_status == "rejected":
+        reason = (request.data.get("reason") or "").strip()
+        if not reason:
+            return Response(
+                {"detail": "Rejection reason is required."},
+                status=http_status.HTTP_400_BAD_REQUEST,
+            )
+        profile.rejection_reason = reason
+    else:
+        profile.rejection_reason = ""
+    profile.status = new_status
+    profile.save(update_fields=["status", "rejection_reason", "updated_at"])
+    return Response({
+        "telegram_id":      profile.user_id,
+        "status":           profile.status,
+        "rejection_reason": profile.rejection_reason,
+    })

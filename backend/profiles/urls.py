@@ -9,4 +9,5 @@ urlpatterns = [
     path("admin/anketas/<int:telegram_id>", admin_views.get_anketa),
     path("admin/anketas/<int:telegram_id>/approve", admin_views.approve_anketa),
     path("admin/anketas/<int:telegram_id>/reject", admin_views.reject_anketa),
+    path("admin/anketas/<int:telegram_id>/status", admin_views.set_anketa_status),
 ]
