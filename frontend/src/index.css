@@ -1,3 +1,9 @@
+:root {
+  /* height of the fixed bottom tab bar (content + the device safe-area). Pages
+     that present the tab bar offset their bottom-anchored UI by this. */
+  --bottom-nav-h: calc(60px + var(--tg-viewport-safe-area-inset-bottom, 0px));
+}
+
 html {
   /* block pinch-zoom / double-tap-zoom gestures (vertical scroll still works) */
   touch-action: pan-x pan-y;

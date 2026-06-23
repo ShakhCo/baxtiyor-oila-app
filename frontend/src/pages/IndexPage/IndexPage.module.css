@@ -30,7 +30,7 @@
   -moz-osx-font-smoothing: grayscale;
   padding: calc(var(--tg-viewport-safe-area-inset-top, 0px) + var(--tg-viewport-content-safe-area-inset-top, 0px) + 26px)
     calc(var(--tg-viewport-content-safe-area-inset-right, 0px) + 20px)
-    calc(var(--tg-viewport-safe-area-inset-bottom, 0px) + 48px)
+    calc(var(--bottom-nav-h) + 28px)
     calc(var(--tg-viewport-content-safe-area-inset-left, 0px) + 20px);
   overflow-x: hidden;
 }
@@ -278,66 +278,6 @@
 /* fades not used in the app layout */
 .fadeTop, .fadeBottom, .vignette { display: none; }
 
-/* ───── FABs ───── */
-.anketaFab {
-  position: fixed;
-  right: calc(var(--tg-viewport-content-safe-area-inset-right, 0px) + 18px);
-  bottom: calc(var(--tg-viewport-safe-area-inset-bottom, 0px) + 88px);
-  z-index: 40;
-  width: 52px;
-  height: 52px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  appearance: none;
-  border-radius: 50%;
-  border: 1px solid var(--line);
-  background: #ffffff;
-  color: var(--accent-ink);
-  cursor: pointer;
-  box-shadow: 0 8px 20px -10px rgba(60, 44, 16, 0.3);
-  -webkit-tap-highlight-color: transparent;
-  transition: transform 0.12s ease;
-}
-
-.anketaFab:active { transform: scale(0.93); }
-.animateIntro .anketaFab { animation: fabIn 0.5s 2150ms backwards; }
-
-.chatFab {
-  position: fixed;
-  right: calc(var(--tg-viewport-content-safe-area-inset-right, 0px) + 18px);
-  bottom: calc(var(--tg-viewport-safe-area-inset-bottom, 0px) + 20px);
-  z-index: 40;
-  width: 56px;
-  height: 56px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  appearance: none;
-  border: none;
-  border-radius: 50%;
-  background: var(--accent);
-  color: var(--on-accent);
-  cursor: pointer;
-  box-shadow: 0 10px 24px -10px rgba(120, 48, 64, 0.5);
-  transition: transform 0.12s ease;
-  animation: fabPulse 2.6s ease-in-out infinite;
-}
-
-.chatFab:active { transform: scale(0.95); }
-.animateIntro .chatFab { animation: fabIn 0.5s 2000ms backwards, fabPulse 2.6s 2300ms ease-in-out infinite; }
-
-@keyframes fabIn {
-  from { opacity: 0; transform: scale(0.6); }
-  to   { opacity: 1; transform: scale(1); }
-}
-
-@keyframes fabPulse {
-  0%   { box-shadow: 0 10px 24px -10px rgba(120, 48, 64, 0.5), 0 0 0 0 rgba(179, 79, 99, 0.4); }
-  70%  { box-shadow: 0 10px 24px -10px rgba(120, 48, 64, 0.5), 0 0 0 14px rgba(179, 79, 99, 0); }
-  100% { box-shadow: 0 10px 24px -10px rgba(120, 48, 64, 0.5), 0 0 0 0 rgba(179, 79, 99, 0); }
-}
-
 /* ───── opening: logo zooms in big from the centre, then content settles ───── */
 @keyframes logoZoom {
   from { transform: scale(3.2); height: 64vh; }
@@ -367,5 +307,4 @@
   .animateIntro .tagline,
   .animateIntro .cta,
   .animateIntro .ctaHint { animation: none; }
-  .chatFab, .animateIntro .chatFab { animation: none; }
 }

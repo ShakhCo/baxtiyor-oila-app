@@ -4,6 +4,7 @@ import { useLaunchParams, useSignal, miniApp, initData, retrieveLaunchParams } f
 import { AppRoot } from '@telegram-apps/telegram-ui';
 
 import { routes } from '@/navigation/routes.tsx';
+import { BottomNav } from '@/components/BottomNav/BottomNav';
 import { initialStartParam } from '@/initialUrl.ts';
 
 // Read the launch deep-link param. For a direct-link / Main Mini App
@@ -79,6 +80,7 @@ export function App() {
           {routes.map((route) => <Route key={route.path} {...route} />)}
           <Route path="*" element={<CatchAll />}/>
         </Routes>
+        <BottomNav />
       </HashRouter>
     </AppRoot>
   );

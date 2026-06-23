@@ -13,6 +13,13 @@
   overflow: hidden;
 }
 
+/* user chat presents the bottom tab bar — reserve its height so the composer
+   sits directly above it (the admin thread reuses .root without this class) */
+.root.withNav {
+  height: calc(100vh - var(--bottom-nav-h));
+  height: calc(100dvh - var(--bottom-nav-h));
+}
+
 /* glassy chat header overlay: centered name + status, messages scroll behind it */
 .header {
   position: absolute;

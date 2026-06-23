@@ -2,36 +2,12 @@
 import { useEffect, useRef, useState, type FC, type PropsWithChildren } from 'react';
 import { useNavigate } from 'react-router-dom';
 
-import { apiGet } from '@/api/client';
 import { Page } from '@/components/Page.tsx';
 
 import s from './IndexPage.module.css';
 
 // const ADMIN_PRIMARY = 'BaxtiyorOila_admin';   // used by the (hidden) contact section
 // const ADMIN_SECONDARY = 'Babaeva_L_S';
-
-function ChatIcon() {
-  return (
-    <svg width="26" height="26" viewBox="0 0 24 24" fill="none" aria-hidden>
-      <path
-        d="M6 4 H18 A2 2 0 0 1 20 6 V14 A2 2 0 0 1 18 16 H10 L6 20 V6 A2 2 0 0 1 6 4 Z"
-        stroke="currentColor"
-        strokeWidth="1.7"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    </svg>
-  );
-}
-
-function AnketaIcon() {
-  return (
-    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden>
-      <rect x="5" y="3" width="14" height="18" rx="2.5" stroke="currentColor" strokeWidth="1.6" />
-      <path d="M9 8 H15 M9 12 H15 M9 16 H13" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
-    </svg>
-  );
-}
 
 function Arrow() {
   return (
@@ -124,7 +100,6 @@ const CONTACTS = [
 
 export const IndexPage: FC = () => {
   const navigate = useNavigate();
-  const [isAdmin, setIsAdmin] = useState(false);
   // True only on the first mount after a real page load.
   const [playIntro] = useState(() => !heroIntroPlayed);
 
@@ -136,12 +111,6 @@ export const IndexPage: FC = () => {
     if (!playIntro) return;
     setTimeout(() => { heroIntroPlayed = true; }, 2400);
   }, [playIntro]);
-
-  useEffect(() => {
-    apiGet<{ is_admin: boolean }>('/me')
-      .then(data => setIsAdmin(Boolean(data.is_admin)))
-      .catch(() => { /* not admin or auth issue — landing still renders fine */ });
-  }, []);
 
   return (
     <Page back={false}>
@@ -245,26 +214,6 @@ export const IndexPage: FC = () => {
         <footer className={s.footer}>
           <span className={s.footerText}>„Humo“ o‘zbek-olmon hamjamiyati</span>
         </footer>
-
-        {isAdmin && (
-          <button
-            type="button"
-            className={s.anketaFab}
-            onClick={() => navigate('/admin')}
-            aria-label="Anketalar paneli"
-          >
-            <AnketaIcon />
-          </button>
-        )}
-
-        <button
-          type="button"
-          className={s.chatFab}
-          onClick={() => navigate(isAdmin ? '/admin/chat' : '/chat')}
-          aria-label="Suhbat"
-        >
-          <ChatIcon />
-        </button>
       </div>
     </Page>
   );

@@ -8,7 +8,7 @@ import s from './ChatPage.module.css';
 export const ChatPage: FC = () => {
   return (
     <Page back>
-      <div className={`${s.root} ${s.light}`}>
+      <div className={`${s.root} ${s.light} ${s.withNav}`}>
         <header className={s.header}>
           <span className={s.name}>Baxtiyor Oila</span>
           <span className={s.status}>
@@ -16,7 +16,7 @@ export const ChatPage: FC = () => {
             Hozirda online
           </span>
         </header>
-        <ChatThread basePath="/chat" mySide="user" theme="light" />
+        <ChatThread basePath="/chat" mySide="user" theme="light" bottomSafe={false} />
       </div>
     </Page>
   );
