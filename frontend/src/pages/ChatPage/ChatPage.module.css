@@ -13,14 +13,6 @@
   overflow: hidden;
 }
 
-/* user chat presents the bottom tab bar — shrink the shell so the composer sits
-   above it. Use Telegram's reliable visible-viewport height (bound via
-   bindCssVars); a plain 100dvh can exceed the visible sheet in the Telegram
-   webview, pushing the composer under the bar. The admin thread reuses .root
-   without this class, so it stays full-height. */
-.root.withNav {
-  height: calc(var(--tg-viewport-stable-height, 100dvh) - var(--bottom-nav-h));
-}
 
 /* glassy chat header overlay: centered name + status, messages scroll behind it */
 .header {

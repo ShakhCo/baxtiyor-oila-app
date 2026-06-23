@@ -5,9 +5,11 @@ import { apiGet } from '@/api/client';
 
 import s from './BottomNav.module.css';
 
-// The top-level destinations that present the tab bar. Detail / thread views
-// (e.g. /admin/chat/:id) are reached via the back button and show no bar.
-const TAB_ROUTES = new Set(['/', '/anketa', '/chat']);
+// Routes that present the tab bar. The chat opens full-screen (its composer
+// owns the bottom — a carved-out tab bar fights the Telegram webview viewport),
+// so /chat is reached via the Suhbat tab but shows no bar itself; the back
+// button returns. Detail / thread views are likewise barless.
+const TAB_ROUTES = new Set(['/', '/anketa']);
 
 type IconProps = { active: boolean };
 
