@@ -4,6 +4,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { Page } from '@/components/Page.tsx';
 import { apiGet, apiPost } from '@/api/client';
 
+import { MatchAssigner } from './MatchAssigner';
 import s from './AnketaDetailPage.module.css';
 
 type Status = 'pending' | 'approved' | 'rejected';
@@ -211,6 +212,8 @@ export const AdminAnketaDetailPage: FC = () => {
           <Row label="Telegram ID">{String(data.telegram_id)}</Row>
           <Row label="Yuborilgan">{new Date(data.created_at).toLocaleString()}</Row>
         </div>
+
+        {telegramId && <MatchAssigner telegramId={telegramId} />}
 
         {/* status controls — show the two statuses the anketa is NOT currently in */}
         <div className={s.actions}>

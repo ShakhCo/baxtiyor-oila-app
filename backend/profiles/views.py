@@ -3,7 +3,6 @@ from rest_framework.decorators import api_view
 from rest_framework.response import Response
 
 from chat.models import Conversation, Label
-from profiles.matching import match_score
 from profiles.models import Profile
 from profiles.serializers import MatchSerializer, ProfileSerializer
 
@@ -85,53 +84,40 @@ def my_anketa(request):
 
 @api_view(["GET"])
 def my_matches(request):
-    """Opposite-gender approved anketas, ranked by similarity to the caller's.
-
-    Available only once the caller's own anketa is approved and has a gender.
-    `available` tells the client whether the feed applies (vs. a gentle hint)."""
+    """The candidates an admin has assigned to the caller (admin-curated, not
+    auto-matched). Shown once the caller's own anketa is approved."""
     try:
         me = Profile.objects.get(user=request.user)
     except Profile.DoesNotExist:
         return Response({"available": False, "matches": []})
-
     if me.status != "approved":
-        return Response({"available": False, "reason": "not_approved", "matches": []})
-    if not me.gender:
-        return Response({"available": False, "reason": "no_gender", "matches": []})
+        return Response({"available": False, "matches": []})
 
-    opposite = "female" if me.gender == "male" else "male"
-    # every opposite-gender approved candidate, best match first (low scores still shown)
     candidates = (
-        Profile.objects
-        .filter(status="approved", gender=opposite)
-        .exclude(user=request.user)
+        me.matches.all()
         .select_related("user")
         .prefetch_related("user__photos")
+        .order_by("full_name")
     )
-    ranked = sorted(candidates, key=lambda p: match_score(me, p), reverse=True)
-    serialized = MatchSerializer(ranked, many=True, context={"me": me}).data
-    return Response({"available": True, "matches": serialized})
+    return Response({"available": True, "matches": MatchSerializer(candidates, many=True).data})
 
 
 @api_view(["GET"])
 def match_detail(request, telegram_id: int):
-    """Full profile of a single candidate — only reachable by an approved user
-    and only for an approved opposite-gender anketa (no contact info)."""
+    """Full profile of one assigned candidate (no contact info)."""
     try:
         me = Profile.objects.get(user=request.user)
     except Profile.DoesNotExist:
         return Response(status=http_status.HTTP_404_NOT_FOUND)
-    if me.status != "approved" or not me.gender:
+    if me.status != "approved":
         return Response(status=http_status.HTTP_404_NOT_FOUND)
-
-    opposite = "female" if me.gender == "male" else "male"
     try:
         candidate = (
-            Profile.objects
+            me.matches
             .select_related("user")
             .prefetch_related("user__photos")
-            .get(user_id=telegram_id, status="approved", gender=opposite)
+            .get(user_id=telegram_id)
         )
     except Profile.DoesNotExist:
         return Response(status=http_status.HTTP_404_NOT_FOUND)
-    return Response(MatchSerializer(candidate, context={"me": me}).data)
+    return Response(MatchSerializer(candidate).data)

@@ -73,6 +73,10 @@ class Profile(models.Model):
     contact_info              = models.CharField(max_length=255)
     tariff                    = models.CharField(max_length=16, choices=TARIFF_CHOICES)
 
+    # Admin-assigned candidates this user may see. Symmetric: adding B to A's
+    # matches automatically lets B see A too (no auto-matching).
+    matches                   = models.ManyToManyField("self", blank=True)
+
     # Lifecycle
     status                    = models.CharField(max_length=16, choices=STATUS_CHOICES, default="pending")
     rejection_reason          = models.TextField(blank=True, default="")

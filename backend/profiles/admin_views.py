@@ -84,6 +84,51 @@ def get_anketa(_request, telegram_id: int):
     })
 
 
+def _match_summary(p: Profile) -> dict:
+    return {
+        "telegram_id":       p.user_id,
+        "full_name":         p.full_name,
+        "age":               p.age,
+        "birthplace_region": p.birthplace_region,
+        "status":            p.status,
+        "tariff":            p.tariff,
+    }
+
+
+@api_view(["GET", "POST"])
+@permission_classes([IsAdmin])
+def anketa_matches(request, telegram_id: int):
+    """List / add the candidates assigned to this anketa. Adding is symmetric —
+    the candidate gets this user in their matches too."""
+    profile = get_object_or_404(Profile, user_id=telegram_id)
+
+    if request.method == "POST":
+        cand_id = request.data.get("candidate_id")
+        try:
+            cand_id = int(cand_id)
+        except (TypeError, ValueError):
+            return Response({"detail": "candidate_id required"}, status=http_status.HTTP_400_BAD_REQUEST)
+        if cand_id == profile.user_id:
+            return Response({"detail": "cannot match self"}, status=http_status.HTTP_400_BAD_REQUEST)
+        candidate = get_object_or_404(Profile, user_id=cand_id)
+        profile.matches.add(candidate)
+
+    matches = profile.matches.all().order_by("full_name")
+    return Response({"matches": [_match_summary(p) for p in matches]})
+
+
+@api_view(["DELETE"])
+@permission_classes([IsAdmin])
+def anketa_match_remove(request, telegram_id: int, candidate_id: int):
+    profile = get_object_or_404(Profile, user_id=telegram_id)
+    try:
+        candidate = profile.matches.get(user_id=candidate_id)
+    except Profile.DoesNotExist:
+        return Response(status=http_status.HTTP_404_NOT_FOUND)
+    profile.matches.remove(candidate)
+    return Response(status=http_status.HTTP_204_NO_CONTENT)
+
+
 @api_view(["POST"])
 @permission_classes([IsAdmin])
 def approve_anketa(_request, telegram_id: int):
