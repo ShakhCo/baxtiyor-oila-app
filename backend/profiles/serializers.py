@@ -50,6 +50,7 @@ class MatchSerializer(serializers.ModelSerializer):
     contact_info and tariff so connecting still goes through the admin."""
 
     region_label = serializers.SerializerMethodField()
+    photos = serializers.SerializerMethodField()
 
     class Meta:
         model = Profile
@@ -70,7 +71,11 @@ class MatchSerializer(serializers.ModelSerializer):
             "germany_status",
             "self_description",
             "partner_expectations",
+            "photos",
         ]
 
     def get_region_label(self, obj):
         return _REGION_LABELS.get(obj.birthplace_region, obj.birthplace_region)
+
+    def get_photos(self, obj):
+        return [{"id": p.id, "url": p.image.url} for p in obj.user.photos.all()]

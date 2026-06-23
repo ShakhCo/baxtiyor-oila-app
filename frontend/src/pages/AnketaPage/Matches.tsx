@@ -21,6 +21,7 @@ export type Match = {
   germany_status: string;
   self_description: string;
   partner_expectations: string;
+  photos: { id: number; url: string }[];
 };
 
 type MatchResponse = { available: boolean; reason?: string; matches: Match[] };
@@ -47,6 +48,15 @@ function MatchSheet({ match, onClose }: { match: Match; onClose: () => void }) {
           <p className={s.sheetSub}>
             {match.age} yosh{match.gender ? ` · ${GENDER_LABEL[match.gender]}` : ''}
           </p>
+          {match.photos.length > 0 && (
+            <div className={s.gallery}>
+              {match.photos.map(p => (
+                <a key={p.id} className={s.galleryItem} href={p.url} target="_blank" rel="noreferrer">
+                  <img src={p.url} alt="" loading="lazy" />
+                </a>
+              ))}
+            </div>
+          )}
           <Row label="Tug‘ilgan joyi" value={match.region_label} />
           <Row label="Olmoniyadagi shahar" value={match.current_residence_germany} />
           <Row label="Bo‘yi, vazni" value={match.height_weight} />
@@ -101,6 +111,11 @@ export const Matches: FC = () => {
         <div className={s.list}>
           {matches.map((m, i) => (
             <button key={i} type="button" className={s.card} onClick={() => setOpen(m)}>
+              {m.photos[0] ? (
+                <img className={s.thumb} src={m.photos[0].url} alt="" loading="lazy" />
+              ) : (
+                <span className={`${s.thumb} ${s.thumbBlank}`} aria-hidden>{m.full_name.charAt(0)}</span>
+              )}
               <span className={s.cardMain}>
                 <span className={s.cardName}>{m.full_name}</span>
                 <span className={s.cardMeta}>

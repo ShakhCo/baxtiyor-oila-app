@@ -9,10 +9,6 @@ from profiles.serializers import MatchSerializer, ProfileSerializer
 # Chat label applied to a user based on the tariff they picked in the anketa.
 TARIFF_LABELS = {"basic": "20 €", "standart": "50 €"}
 
-# How many ranked candidates the match feed returns.
-MATCH_LIMIT = 20
-
-
 def _norm(value):
     return (value or "").strip().casefold()
 
@@ -121,10 +117,13 @@ def my_matches(request):
         return Response({"available": False, "reason": "no_gender", "matches": []})
 
     opposite = "female" if me.gender == "male" else "male"
+    # every opposite-gender approved candidate, best match first (low scores still shown)
     candidates = (
         Profile.objects
         .filter(status="approved", gender=opposite)
         .exclude(user=request.user)
+        .select_related("user")
+        .prefetch_related("user__photos")
     )
-    ranked = sorted(candidates, key=lambda p: _match_score(me, p), reverse=True)[:MATCH_LIMIT]
+    ranked = sorted(candidates, key=lambda p: _match_score(me, p), reverse=True)
     return Response({"available": True, "matches": MatchSerializer(ranked, many=True).data})
