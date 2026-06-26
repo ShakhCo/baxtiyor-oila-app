@@ -2,6 +2,7 @@ import { useEffect, useState, type FC, type ReactNode } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 
 import { Page } from '@/components/Page.tsx';
+import { Lightbox } from '@/components/Lightbox/Lightbox';
 import { apiGet, apiPost } from '@/api/client';
 
 import { MatchAssigner } from './MatchAssigner';
@@ -72,6 +73,7 @@ export const AdminAnketaDetailPage: FC = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const [lightbox, setLightbox] = useState<string | null>(null);
   const [rejectOpen, setRejectOpen] = useState(false);
   const [reason, setReason] = useState('');
 
@@ -157,9 +159,14 @@ export const AdminAnketaDetailPage: FC = () => {
         {data.photos?.length > 0 && (
           <div className={s.photos}>
             {data.photos.map(p => (
-              <a key={p.id} className={s.photo} href={p.url} target="_blank" rel="noreferrer">
+              <button
+                key={p.id}
+                type="button"
+                className={s.photo}
+                onClick={() => setLightbox(p.url)}
+              >
                 <img src={p.url} alt="" loading="lazy" />
-              </a>
+              </button>
             ))}
           </div>
         )}
@@ -284,6 +291,7 @@ export const AdminAnketaDetailPage: FC = () => {
           </div>
         )}
       </div>
+      {lightbox && <Lightbox src={lightbox} onClose={() => setLightbox(null)} />}
     </Page>
   );
 };

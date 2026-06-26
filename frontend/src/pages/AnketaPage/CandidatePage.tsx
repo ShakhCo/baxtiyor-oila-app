@@ -3,6 +3,7 @@ import { useParams } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 
 import { Page } from '@/components/Page.tsx';
+import { Lightbox } from '@/components/Lightbox/Lightbox';
 import { apiGet } from '@/api/client';
 
 import s from './CandidatePage.module.css';
@@ -41,6 +42,7 @@ function Row({ label, value }: { label: string; value?: string }) {
 export const CandidatePage: FC = () => {
   const { id } = useParams<{ id: string }>();
   const [copied, setCopied] = useState(false);
+  const [lightbox, setLightbox] = useState<string | null>(null);
   const { data, isLoading, isError } = useQuery({
     queryKey: ['candidate', id],
     queryFn: () => apiGet<Candidate>(`/anketa/matches/${id}`),
@@ -68,9 +70,14 @@ export const CandidatePage: FC = () => {
         {data.photos.length > 0 && (
           <div className={s.gallery}>
             {data.photos.map(p => (
-              <a key={p.id} className={s.galleryItem} href={p.url} target="_blank" rel="noreferrer">
+              <button
+                key={p.id}
+                type="button"
+                className={s.galleryItem}
+                onClick={() => setLightbox(p.url)}
+              >
                 <img src={p.url} alt="" loading="lazy" />
-              </a>
+              </button>
             ))}
           </div>
         )}
@@ -123,6 +130,7 @@ export const CandidatePage: FC = () => {
         <div className={s.fadeTop} aria-hidden />
         {body}
       </div>
+      {lightbox && <Lightbox src={lightbox} onClose={() => setLightbox(null)} />}
     </Page>
   );
 };

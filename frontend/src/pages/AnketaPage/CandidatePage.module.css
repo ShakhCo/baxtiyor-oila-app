@@ -69,19 +69,30 @@
 
 /* photos */
 .gallery {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 8px;
+  display: flex;
+  gap: 10px;
   margin-bottom: 16px;
+  padding-bottom: 2px;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
 }
+.gallery::-webkit-scrollbar { display: none; }
 
 .galleryItem {
-  display: block;
-  aspect-ratio: 1 / 1;
+  flex: 0 0 auto;
+  width: 200px;
+  aspect-ratio: 3 / 4;
+  scroll-snap-align: start;
+  appearance: none;
+  padding: 0;
+  cursor: pointer;
   border-radius: 14px;
   overflow: hidden;
   background: #f5f4f1;
   border: 1px solid rgba(40, 30, 16, 0.10);
+  -webkit-tap-highlight-color: transparent;
 }
 
 .galleryItem img {

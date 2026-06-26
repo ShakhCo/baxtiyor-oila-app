@@ -1,0 +1,20 @@
+.backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  background: rgba(0, 0, 0, 0.92);
+  -webkit-backdrop-filter: blur(4px);
+  backdrop-filter: blur(4px);
+  cursor: zoom-out;
+}
+
+.img {
+  max-width: 94vw;
+  max-height: 92vh;
+  object-fit: contain;
+  border-radius: 8px;
+}
