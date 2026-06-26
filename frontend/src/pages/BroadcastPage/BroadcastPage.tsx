@@ -1,76 +1,92 @@
-import { useState, type FC } from 'react';
+import { useEffect, useRef, useState, type ChangeEvent, type FC } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQuery } from '@tanstack/react-query';
 
 import { Page } from '@/components/Page.tsx';
-import { apiGet, apiPost } from '@/api/client';
+import { apiGet, apiUpload } from '@/api/client';
 
 import s from './BroadcastPage.module.css';
 import sheet from '@/pages/ChatPage/ChatPage.module.css';
 
-type Broadcast = {
-  id: number;
-  text: string;
-  status: 'pending' | 'running' | 'done';
-  total: number;
-  sent: number;
-  failed: number;
-  created_at: string;
-  finished_at: string | null;
-};
-type Payload = { items: Broadcast[]; user_count: number };
+type Broadcast = { id: number };
+type Payload = { user_count: number };
 
-const KEY = ['broadcasts'] as const;
-const UZ_MONTHS = ['Yan', 'Fev', 'Mar', 'Apr', 'May', 'Iyun', 'Iyul', 'Avg', 'Sen', 'Okt', 'Noy', 'Dek'];
+const MAX_PHOTOS = 10;
 
-function timeLabel(iso: string): string {
-  const d = new Date(iso);
-  const t = new Date();
-  const hm = d.toLocaleTimeString('uz-UZ', { hour: '2-digit', minute: '2-digit' });
-  if (d.toDateString() === t.toDateString()) return hm;
-  return `${UZ_MONTHS[d.getMonth()]} ${d.getDate()}, ${hm}`;
-}
+type PhotoPick = { file: File; url: string };
 
-function statusLabel(b: Broadcast): string {
-  if (b.status === 'done') return 'Yakunlandi';
-  if (b.status === 'running') return 'Yuborilmoqda';
-  return 'Navbatda';
+function HistoryIcon() {
+  return (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden>
+      <path d="M12 7v5l3 2" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M4 12a8 8 0 1 0 2.5-5.8M4 4v3h3" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
 }
 
 export const BroadcastPage: FC = () => {
-  const queryClient = useQueryClient();
   const navigate = useNavigate();
   const [text, setText] = useState('');
+  const [photos, setPhotos] = useState<PhotoPick[]>([]);
   const [confirm, setConfirm] = useState(false);
+  const fileRef = useRef<HTMLInputElement>(null);
 
   const { data } = useQuery({
-    queryKey: KEY,
+    queryKey: ['broadcast-user-count'],
     queryFn: () => apiGet<Payload>('/admin/broadcasts'),
-    // poll while anything is still in flight, otherwise rest
-    refetchInterval: (query) =>
-      query.state.data?.items.some(i => i.status !== 'done') ? 1500 : false,
+    staleTime: 60_000,
   });
-  const items = data?.items ?? [];
   const userCount = data?.user_count ?? 0;
 
+  // revoke object URLs on unmount so previews don't leak
+  useEffect(() => () => { photos.forEach(p => URL.revokeObjectURL(p.url)); }, [photos]);
+
+  function onPick(e: ChangeEvent<HTMLInputElement>) {
+    const files = Array.from(e.target.files ?? []);
+    e.target.value = '';
+    const room = MAX_PHOTOS - photos.length;
+    const take = files.slice(0, Math.max(0, room));
+    setPhotos(prev => [...prev, ...take.map(f => ({ file: f, url: URL.createObjectURL(f) }))]);
+  }
+
+  function removePhoto(url: string) {
+    URL.revokeObjectURL(url);
+    setPhotos(prev => prev.filter(p => p.url !== url));
+  }
+
   const send = useMutation({
-    mutationFn: (body: string) => apiPost<Broadcast>('/admin/broadcasts', { text: body }),
-    onSuccess: (bc) => {
+    mutationFn: () => {
+      const form = new FormData();
+      form.append('text', text.trim());
+      photos.forEach(p => form.append('images', p.file));
+      return apiUpload<Broadcast>('/admin/broadcasts', form);
+    },
+    onSuccess: () => {
+      photos.forEach(p => URL.revokeObjectURL(p.url));
       setText('');
+      setPhotos([]);
       setConfirm(false);
-      queryClient.setQueryData<Payload>(KEY, (prev) =>
-        prev ? { ...prev, items: [bc, ...prev.items] } : { items: [bc], user_count: userCount });
-      queryClient.invalidateQueries({ queryKey: KEY });
+      navigate('/admin/broadcast/history');
     },
   });
 
-  const canSend = text.trim().length > 0 && !send.isPending;
+  const canSend = (text.trim().length > 0 || photos.length > 0) && !send.isPending;
 
   return (
     <Page back>
       <div className={s.root}>
         <header className={s.header}>
-          <p className={s.eyebrow}>{userCount.toLocaleString('uz-UZ')} foydalanuvchi</p>
+          <div className={s.headerRow}>
+            <p className={s.eyebrow}>{userCount.toLocaleString('uz-UZ')} foydalanuvchi</p>
+            <button
+              type="button"
+              className={s.historyLink}
+              onClick={() => navigate('/admin/broadcast/history')}
+            >
+              <HistoryIcon />
+              Yuborilganlar
+            </button>
+          </div>
           <h1 className={s.title}>Ommaviy xabar</h1>
         </header>
 
@@ -81,58 +97,43 @@ export const BroadcastPage: FC = () => {
           placeholder="Hammaga yuboriladigan xabar…"
           rows={5}
         />
+
+        <div className={s.photos}>
+          {photos.map(p => (
+            <div className={s.thumb} key={p.url}>
+              <img className={s.thumbImg} src={p.url} alt="" />
+              <button type="button" className={s.thumbRemove} onClick={() => removePhoto(p.url)} aria-label="O‘chirish">×</button>
+            </div>
+          ))}
+          {photos.length < MAX_PHOTOS && (
+            <button type="button" className={s.addPhoto} onClick={() => fileRef.current?.click()}>
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden>
+                <path d="M12 5v14M5 12h14" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+              </svg>
+              <span className={s.addPhotoText}>Rasm</span>
+            </button>
+          )}
+        </div>
+        <p className={s.photoHint}>Ixtiyoriy · {MAX_PHOTOS} tagacha rasm</p>
+
+        <input ref={fileRef} type="file" accept="image/*" multiple onChange={onPick} hidden />
+
         <button type="button" className={s.send} disabled={!canSend} onClick={() => setConfirm(true)}>
           Yuborish
         </button>
-
-        {items.length > 0 && (
-          <div className={s.history}>
-            <p className={s.historyTitle}>Yuborilganlar</p>
-            {items.map(b => {
-              const done = b.sent + b.failed;
-              const pct = b.total ? Math.round((done / b.total) * 100) : 0;
-              return (
-                <button
-                  key={b.id}
-                  type="button"
-                  className={s.card}
-                  onClick={() => navigate(`/admin/broadcast/${b.id}`)}
-                >
-                  <div className={s.cardTop}>
-                    <span className={`${s.badge} ${b.status === 'done' ? s.badgeDone : s.badgeRun}`}>
-                      {statusLabel(b)}
-                    </span>
-                    <span className={s.cardTime}>{timeLabel(b.created_at)}</span>
-                  </div>
-                  <p className={s.cardText}>{b.text}</p>
-                  <div className={s.stats}>
-                    <span className={s.statOk}>✓ {b.sent.toLocaleString('uz-UZ')} yuborildi</span>
-                    <span className={s.statFail}>✕ {b.failed.toLocaleString('uz-UZ')}</span>
-                    <span className={s.statTotal}>/ {b.total.toLocaleString('uz-UZ')}</span>
-                  </div>
-                  {b.status !== 'done' && (
-                    <div className={s.progress}>
-                      <div className={s.progressBar} style={{ width: `${pct}%` }} />
-                    </div>
-                  )}
-                </button>
-              );
-            })}
-          </div>
-        )}
 
         {confirm && (
           <div className={sheet.sheetBackdrop} onClick={() => setConfirm(false)}>
             <div className={sheet.sheet} onClick={e => e.stopPropagation()}>
               <h2 className={sheet.sheetTitle}>Tasdiqlang</h2>
               <p className={sheet.sheetHint}>
-                Ushbu xabar {userCount.toLocaleString('uz-UZ')} foydalanuvchiga yuboriladi. Davom etilsinmi?
+                Ushbu xabar{photos.length > 0 ? ` (${photos.length} ta rasm bilan)` : ''} {userCount.toLocaleString('uz-UZ')} foydalanuvchiga yuboriladi. Davom etilsinmi?
               </p>
               <button
                 type="button"
                 className={s.confirmSend}
                 disabled={send.isPending}
-                onClick={() => send.mutate(text.trim())}
+                onClick={() => send.mutate()}
               >
                 {send.isPending ? 'Yuborilmoqda…' : 'Ha, yuborish'}
               </button>

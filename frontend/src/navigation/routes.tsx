@@ -8,6 +8,7 @@ import { AdminPage } from '@/pages/AdminPage/AdminPage';
 import { AnketaPage } from '@/pages/AnketaPage/AnketaPage';
 import { CandidatePage } from '@/pages/AnketaPage/CandidatePage';
 import { BroadcastDetailPage } from '@/pages/BroadcastPage/BroadcastDetailPage';
+import { BroadcastHistoryPage } from '@/pages/BroadcastPage/BroadcastHistoryPage';
 import { BroadcastPage } from '@/pages/BroadcastPage/BroadcastPage';
 import { ChatPage } from '@/pages/ChatPage/ChatPage';
 import { IndexPage } from '@/pages/IndexPage/IndexPage';
@@ -34,6 +35,7 @@ export const routes: Route[] = [
   { path: '/admin/chat', Component: AdminChatPage, title: 'Suhbatlar' },
   { path: '/admin/chat/:telegramId', Component: AdminChatThreadPage, title: 'Suhbat' },
   { path: '/admin/broadcast', Component: BroadcastPage, title: 'Ommaviy xabar' },
+  { path: '/admin/broadcast/history', Component: BroadcastHistoryPage, title: 'Yuborilganlar' },
   { path: '/admin/broadcast/:id', Component: BroadcastDetailPage, title: 'Hisobot' },
   { path: '/init-data', Component: InitDataPage, title: 'Init Data' },
   { path: '/theme-params', Component: ThemeParamsPage, title: 'Theme Params' },

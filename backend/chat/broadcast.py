@@ -36,7 +36,7 @@ def _display_name(first: str, last: str, username: str, tid: int) -> str:
     return f"{first or ''} {last or ''}".strip() or username or str(tid)
 
 
-def _flush_chat_history(text: str, when, batch: dict[int, bool]) -> None:
+def _flush_chat_history(text: str, when, batch: dict[int, bool], image_name: str | None = None) -> None:
     """Store a batch of broadcast deliveries as admin messages in each recipient's
     support thread, so they show up in chat history (flagged if delivery failed).
     Called incrementally during the run so the inbox updates in near real time."""
@@ -53,6 +53,7 @@ def _flush_chat_history(text: str, when, batch: dict[int, bool]) -> None:
             sender=Message.ADMIN,
             author=None,
             text=text,
+            image=image_name or None,  # first broadcast photo, so the thread shows it
             delivery_failed=not batch[t],
         )
         for t in tids if t in conv_map
@@ -64,11 +65,11 @@ def _flush_chat_history(text: str, when, batch: dict[int, bool]) -> None:
     Conversation.objects.filter(user_id__in=tids).update(updated_at=when)
 
 
-def _send_one(client: httpx.Client, url: str, chat_id: int, text: str) -> bool:
-    """Send one message, honouring a single 429 back-off. Returns delivered?"""
+def _post(client: httpx.Client, url: str, payload: dict) -> bool:
+    """POST a Telegram call, honouring a single 429 back-off. Returns ok?"""
     for _ in range(2):
         try:
-            resp = client.post(url, json={"chat_id": chat_id, "text": text})
+            resp = client.post(url, json=payload)
         except httpx.HTTPError:
             return False
         if resp.status_code == 429:
@@ -85,6 +86,61 @@ def _send_one(client: httpx.Client, url: str, chat_id: int, text: str) -> bool:
     return False
 
 
+def _acquire_file_ids(client: httpx.Client, token: str, images) -> list[str]:
+    """Upload each broadcast photo to the admin group once to obtain a reusable
+    Telegram file_id (then delete the temporary message), so per-user delivery
+    sends the file_id instead of re-uploading the bytes 700+ times."""
+    chat_id = settings.TELEGRAM_ADMIN_GROUP_ID
+    if not chat_id:
+        return []
+    send_url = f"https://api.telegram.org/bot{token}/sendPhoto"
+    del_url = f"https://api.telegram.org/bot{token}/deleteMessage"
+    file_ids: list[str] = []
+    for img in images:
+        try:
+            with img.image.open("rb") as fh:
+                resp = client.post(
+                    send_url,
+                    data={"chat_id": chat_id, "disable_notification": "true"},
+                    files={"photo": fh},
+                )
+            data = resp.json()
+            if not data.get("ok"):
+                continue
+            result = data["result"]
+            photos = result.get("photo") or []
+            if not photos:
+                continue
+            file_ids.append(photos[-1]["file_id"])
+            mid = result.get("message_id")
+            if mid:
+                client.post(del_url, json={"chat_id": chat_id, "message_id": mid})
+        except (httpx.HTTPError, ValueError, KeyError, OSError):
+            continue
+    return file_ids
+
+
+def _deliver(client: httpx.Client, token: str, chat_id: int, text: str, file_ids: list[str]) -> bool:
+    """Deliver to one user: a media group / single photo (with the text as caption,
+    capped at Telegram's 1024) when there are photos, otherwise a plain message."""
+    if file_ids:
+        if len(file_ids) == 1:
+            payload = {"chat_id": chat_id, "photo": file_ids[0]}
+            if text:
+                payload["caption"] = text[:1024]
+            return _post(client, f"https://api.telegram.org/bot{token}/sendPhoto", payload)
+        media = []
+        for idx, fid in enumerate(file_ids):
+            item = {"type": "photo", "media": fid}
+            if idx == 0 and text:
+                item["caption"] = text[:1024]
+            media.append(item)
+        return _post(client, f"https://api.telegram.org/bot{token}/sendMediaGroup",
+                     {"chat_id": chat_id, "media": media})
+    return _post(client, f"https://api.telegram.org/bot{token}/sendMessage",
+                 {"chat_id": chat_id, "text": text})
+
+
 def _run(broadcast_id: int) -> None:
     token = settings.BOT_TOKEN
     recipients = list(
@@ -98,7 +154,8 @@ def _run(broadcast_id: int) -> None:
     )
 
     bc = Broadcast.objects.get(id=broadcast_id)
-    url = f"https://api.telegram.org/bot{token}/sendMessage" if token else None
+    images = list(bc.images.all())
+    first_image_name = images[0].image.name if images else None
 
     sent = failed = 0
     pending: list[BroadcastRecipient] = []
@@ -110,14 +167,21 @@ def _run(broadcast_id: int) -> None:
             pending.clear()
         if hist_batch:
             # record this batch into chat history (inbox sees it within seconds)
-            _flush_chat_history(bc.text, bc.created_at, hist_batch)
+            _flush_chat_history(bc.text, bc.created_at, hist_batch, first_image_name)
             hist_batch.clear()
 
     try:
-        with httpx.Client(timeout=15.0) as client:
+        with httpx.Client(timeout=30.0) as client:
+            # prepare reusable file_ids once; fall back to text-only if it fails
+            file_ids = _acquire_file_ids(client, token, images) if (token and images) else []
+            # photo-only broadcast whose media couldn't be prepared can't be sent
+            sendable = bool(token) and bool(file_ids or bc.text)
+            # a media group counts as N messages against the rate limit
+            step = SEND_DELAY * max(1, len(file_ids))
+
             for i, u in enumerate(recipients, 1):
                 tid = u["telegram_id"]
-                ok = bool(url) and _send_one(client, url, tid, bc.text)
+                ok = _deliver(client, token, tid, bc.text, file_ids) if sendable else False
                 if ok:
                     sent += 1
                 else:
@@ -133,8 +197,8 @@ def _run(broadcast_id: int) -> None:
                 if i % PROGRESS_EVERY == 0:
                     flush()
                     Broadcast.objects.filter(id=broadcast_id).update(sent=sent, failed=failed)
-                if url:
-                    time.sleep(SEND_DELAY)
+                if sendable:
+                    time.sleep(step)
     except Exception:  # noqa: BLE001 — never let the worker die silently
         logger.exception("broadcast %s crashed", broadcast_id)
     finally:

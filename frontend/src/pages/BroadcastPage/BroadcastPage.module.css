@@ -244,3 +244,110 @@
 }
 
 @keyframes bSkel { to { background-position: -220% 0; } }
+
+/* compose header row: eyebrow on the left, history link on the right */
+.headerRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.historyLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  appearance: none;
+  border: 1px solid rgba(40, 30, 16, 0.14);
+  background: #f5f4f1;
+  color: #9a3c52;
+  border-radius: 999px;
+  padding: 6px 12px;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+.historyLink:active { transform: scale(0.96); }
+
+/* photo picker grid */
+.photos {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 14px;
+}
+
+.thumb {
+  position: relative;
+  width: 76px;
+  height: 76px;
+  border-radius: 12px;
+  overflow: hidden;
+  background: #f5f4f1;
+}
+
+.thumbImg {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.thumbRemove {
+  position: absolute;
+  top: 3px;
+  right: 3px;
+  width: 22px;
+  height: 22px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.55);
+  color: #fff;
+  font-size: 17px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.addPhoto {
+  width: 76px;
+  height: 76px;
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  appearance: none;
+  border: 1.5px dashed rgba(40, 30, 16, 0.24);
+  background: #faf9f7;
+  color: #9a3c52;
+  border-radius: 12px;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+.addPhoto:active { transform: scale(0.96); }
+.addPhotoText { font-size: 13px; font-weight: 600; }
+
+.photoHint {
+  margin: 8px 0 0;
+  font-size: 13px;
+  color: rgba(34, 27, 19, 0.45);
+}
+
+.photoTag {
+  margin-right: 6px;
+  font-size: 13px;
+  font-weight: 700;
+  color: #9a3c52;
+}
+
+.empty {
+  margin: 40px 0;
+  text-align: center;
+  font-size: 15px;
+  color: rgba(34, 27, 19, 0.5);
+}

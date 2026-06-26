@@ -16,6 +16,7 @@ type Recipient = {
 type Detail = {
   id: number;
   text: string;
+  images: string[];
   status: 'pending' | 'running' | 'done';
   total: number;
   sent: number;
@@ -68,7 +69,16 @@ export const BroadcastDetailPage: FC = () => {
         ) : (
           <>
             <div className={s.card} style={{ cursor: 'default' }}>
-              <p className={`${s.cardText} ${s.fullText}`}>{data.text}</p>
+              {data.images.length > 0 && (
+                <div className={s.photos}>
+                  {data.images.map(url => (
+                    <div className={s.thumb} key={url}>
+                      <img className={s.thumbImg} src={url} alt="" loading="lazy" />
+                    </div>
+                  ))}
+                </div>
+              )}
+              {data.text && <p className={`${s.cardText} ${s.fullText}`}>{data.text}</p>}
               <div className={s.stats}>
                 <span className={s.statOk}>✓ {data.sent.toLocaleString('uz-UZ')} yuborildi</span>
                 <span className={s.statFail}>✕ {data.failed.toLocaleString('uz-UZ')}</span>

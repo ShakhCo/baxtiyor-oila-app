@@ -9,15 +9,18 @@ from rest_framework.response import Response
 from accounts.models import User
 from accounts.permissions import IsAdmin
 from chat.broadcast import recipient_queryset, start_broadcast
-from chat.models import Broadcast, Conversation, Label, Message
+from chat.models import Broadcast, BroadcastImage, Conversation, Label, Message
 from chat.views import MAX_LEN, _messages_after, serialize_message
-from profiles.photo_views import _to_avif
+from profiles.photo_views import _to_avif, _to_jpeg
 
 
 def serialize_broadcast(b: Broadcast) -> dict:
+    images = [img.image.url for img in b.images.all()]
     return {
         "id": b.id,
         "text": b.text,
+        "images": images,
+        "image_count": len(images),
         "status": b.status,
         "total": b.total,
         "sent": b.sent,
@@ -107,19 +110,28 @@ def list_conversations(request):
 @api_view(["GET", "POST"])
 @permission_classes([IsAdmin])
 def broadcasts(request):
-    """List recent broadcasts (with live counts), or start a new one (POST {text})."""
+    """List recent broadcasts (with live counts), or start a new one.
+    POST is multipart: `text` and/or up to 10 `images` (at least one required)."""
     if request.method == "POST":
         text = (request.data.get("text") or "").strip()
-        if not text:
+        uploads = request.FILES.getlist("images")[:BroadcastImage.MAX_PER_BROADCAST]
+        if not text and not uploads:
             return Response({"detail": "Xabar bo‘sh."}, status=http_status.HTTP_400_BAD_REQUEST)
+        try:
+            jpegs = [_to_jpeg(f) for f in uploads]
+        except Exception:
+            return Response({"detail": "Rasmni o‘qib bo‘lmadi."}, status=http_status.HTTP_400_BAD_REQUEST)
         bc = Broadcast.objects.create(
             text=text[:MAX_LEN],
             created_by=getattr(request.user, "telegram_id", None),
         )
+        for i, jpeg in enumerate(jpegs):
+            BroadcastImage.objects.create(broadcast=bc, image=jpeg, order=i)
         start_broadcast(bc.id)
         return Response(serialize_broadcast(bc), status=http_status.HTTP_201_CREATED)
 
-    items = [serialize_broadcast(b) for b in Broadcast.objects.all()[:20]]
+    qs = Broadcast.objects.prefetch_related("images")[:20]
+    items = [serialize_broadcast(b) for b in qs]
     return Response({"items": items, "user_count": recipient_queryset().count()})
 
 

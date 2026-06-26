@@ -31,6 +31,19 @@ def _to_avif(uploaded) -> ContentFile:
     return ContentFile(buf.getvalue(), name=f"{uuid.uuid4().hex}.avif")
 
 
+def _to_jpeg(uploaded) -> ContentFile:
+    """Decode any uploaded image and re-encode it as a right-sized JPEG —
+    used where Telegram must deliver the file (it doesn't accept AVIF)."""
+    img = Image.open(uploaded)
+    img = ImageOps.exif_transpose(img)
+    if img.mode != "RGB":
+        img = img.convert("RGB")
+    img.thumbnail((MAX_DIMENSION, MAX_DIMENSION))
+    buf = io.BytesIO()
+    img.save(buf, format="JPEG", quality=85)
+    return ContentFile(buf.getvalue(), name=f"{uuid.uuid4().hex}.jpg")
+
+
 def _payload(photo: Photo) -> dict:
     # relative URL → same origin as the SPA (avoids http/https proxy mixups)
     return {"id": photo.id, "url": photo.image.url}

@@ -68,6 +68,27 @@ class Broadcast(models.Model):
         return f"Broadcast<{self.id} {self.status} {self.sent}/{self.total}>"
 
 
+def broadcast_image_upload_to(instance, filename):
+    return f"broadcasts/{instance.broadcast_id}/{filename}"
+
+
+class BroadcastImage(models.Model):
+    """A photo attached to a broadcast (JPEG, so Telegram can deliver it).
+    Up to 10, sent as a media group with the text as the caption."""
+
+    MAX_PER_BROADCAST = 10
+
+    broadcast = models.ForeignKey(Broadcast, on_delete=models.CASCADE, related_name="images")
+    image = models.ImageField(upload_to=broadcast_image_upload_to)
+    order = models.PositiveSmallIntegerField(default=0)
+
+    class Meta:
+        ordering = ["order", "id"]
+
+    def __str__(self) -> str:
+        return f"BroadcastImage<{self.pk}> of {self.broadcast_id}"
+
+
 class BroadcastRecipient(models.Model):
     """Per-user delivery outcome for a broadcast (name/username denormalised so
     the report is stable even if the user later changes)."""
