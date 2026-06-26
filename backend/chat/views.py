@@ -1,3 +1,5 @@
+from datetime import timedelta
+
 from django.utils import timezone
 from rest_framework import status as http_status
 from rest_framework.decorators import api_view
@@ -50,6 +52,12 @@ def my_chat(request):
         text = (request.data.get("text") or "").strip()
         if not text:
             return Response({"detail": "Xabar bo‘sh."}, status=http_status.HTTP_400_BAD_REQUEST)
+        # Only ping the admin group when the user hasn't messaged in the last 12h,
+        # so a burst of messages raises a single alert rather than one per message.
+        window_start = timezone.now() - timedelta(hours=12)
+        recently_messaged = conv.messages.filter(
+            sender=Message.USER, created_at__gte=window_start
+        ).exists()
         msg = Message.objects.create(
             conversation=conv,
             sender=Message.USER,
@@ -57,7 +65,8 @@ def my_chat(request):
             text=text[:MAX_LEN],
         )
         conv.touch()
-        notify_admin_group_new_message(request.user, msg.text)
+        if not recently_messaged:
+            notify_admin_group_new_message(request.user, msg.text)
         return Response(serialize_message(msg, conv), status=http_status.HTTP_201_CREATED)
 
     messages = _messages_after(conv, request.query_params.get("after"))

@@ -3,6 +3,7 @@ import {
   themeParams,
   initData,
   viewport,
+  swipeBehavior,
   init as initSDK,
   mockTelegramEnv,
   type ThemeParams,
@@ -70,6 +71,16 @@ export async function init(options: {
   if (viewport.mount.isAvailable()) {
     viewport.mount().then(() => {
       viewport.bindCssVars();
+      // Expand to full height so the app isn't a partial sheet — a collapsed
+      // sheet swallows touch as drag-to-close and inner lists can't scroll.
+      viewport.expand.ifAvailable();
     });
+  }
+
+  // Disable Telegram's vertical swipe-to-minimise so it doesn't intercept the
+  // scroll of inner containers (chat threads, long forms) inside the webview.
+  if (swipeBehavior.mount.isAvailable()) {
+    swipeBehavior.mount();
+    swipeBehavior.disableVertical.ifAvailable();
   }
 }

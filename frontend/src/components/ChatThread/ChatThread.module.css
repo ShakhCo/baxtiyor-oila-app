@@ -118,8 +118,18 @@
   to { background-position: -220% 0; }
 }
 
+/* composer skeleton — shown alongside the message skeletons on first load */
+.skelInput,
+.skelSend {
+  background: linear-gradient(100deg, var(--c-surface) 28%, var(--c-skel-hi) 48%, var(--c-surface) 68%);
+  background-size: 220% 100%;
+  animation: chatSkel 1.3s linear infinite;
+}
+.skelInput { flex: 1; height: 44px; border-radius: 18px; }
+.skelSend { flex: none; width: 44px; height: 44px; border-radius: 50%; }
+
 @media (prefers-reduced-motion: reduce) {
-  .skelBubble { animation: none; }
+  .skelBubble, .skelInput, .skelSend { animation: none; }
 }
 
 .metaRow {

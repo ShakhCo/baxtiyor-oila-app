@@ -105,15 +105,19 @@ export const AdminChatThreadPage: FC = () => {
     <Page back>
       <div className={`${s.root} ${s.light}`}>
         <header className={`${s.header} ${s.headerAdmin}`}>
-          <button
-            type="button"
-            className={s.anketaBtn}
-            onClick={() => navigate(`/admin/anketa/${telegramId}`)}
-            aria-label="Anketani ochish"
-          >
-            <DocIcon />
-            Anketa
-          </button>
+          {metaLoaded ? (
+            <button
+              type="button"
+              className={s.anketaBtn}
+              onClick={() => navigate(`/admin/anketa/${telegramId}`)}
+              aria-label="Anketani ochish"
+            >
+              <DocIcon />
+              Anketa
+            </button>
+          ) : (
+            <span className={s.skelAnketa} aria-hidden />
+          )}
           {metaLoaded ? (
             <>
               <span className={s.name}>{name}</span>

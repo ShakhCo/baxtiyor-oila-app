@@ -151,7 +151,8 @@
 
 .light .skelName,
 .light .skelStatus,
-.light .skelTag {
+.light .skelTag,
+.light .skelAnketa {
   background: linear-gradient(100deg, #efece8 28%, #e3dfd9 48%, #efece8 68%);
   background-size: 220% 100%;
 }
@@ -159,7 +160,8 @@
 /* header skeleton — shown until the user's name/handle loads */
 .skelName,
 .skelStatus,
-.skelTag {
+.skelTag,
+.skelAnketa {
   background: linear-gradient(100deg, #16120d 28%, #241d12 48%, #16120d 68%);
   background-size: 220% 100%;
   animation: headSkel 1.3s linear infinite;
@@ -181,12 +183,22 @@
   border-radius: 999px;
 }
 
+/* skeleton stand-in for the left "Anketa" button (same place + size) */
+.skelAnketa {
+  position: absolute;
+  left: 16px;
+  top: calc(var(--tg-viewport-safe-area-inset-top, 0px) + var(--tg-viewport-content-safe-area-inset-top, 0px) + 12px);
+  width: 78px;
+  height: 34px;
+  border-radius: 999px;
+}
+
 @keyframes headSkel {
   to { background-position: -220% 0; }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .skelName, .skelStatus, .skelTag { animation: none; }
+  .skelName, .skelStatus, .skelTag, .skelAnketa { animation: none; }
 }
 
 /* ───── label editor (admin thread) ───── */

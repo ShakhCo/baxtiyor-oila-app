@@ -187,28 +187,37 @@ export const ChatThread: FC<Props> = ({ basePath, mySide, emptyHint, onMeta, onS
       </div>
 
       <div className={s.inputBar} ref={inputBarRef} style={bottomSafe ? undefined : { paddingBottom: 12 }}>
-        <textarea
-          ref={inputRef}
-          className={s.input}
-          value={text}
-          onChange={e => setText(e.target.value)}
-          onFocus={() => {
-            // wait for the keyboard to animate up, then pin to the latest message
-            setTimeout(() => bottomRef.current?.scrollIntoView({ behavior: 'smooth' }), 300);
-          }}
-          placeholder="Xabar yozing…"
-          rows={1}
-        />
-        <button
-          type="button"
-          className={sending ? `${s.send} ${s.sending}` : s.send}
-          onPointerDown={e => e.preventDefault()} // keep focus on the textarea
-          onClick={send}
-          disabled={!text.trim() || sending}
-          aria-label="Yuborish"
-        >
-          {sending ? <span className={s.spinner} aria-hidden /> : <ArrowUp />}
-        </button>
+        {!loaded ? (
+          <>
+            <span className={s.skelInput} aria-hidden />
+            <span className={s.skelSend} aria-hidden />
+          </>
+        ) : (
+          <>
+            <textarea
+              ref={inputRef}
+              className={s.input}
+              value={text}
+              onChange={e => setText(e.target.value)}
+              onFocus={() => {
+                // wait for the keyboard to animate up, then pin to the latest message
+                setTimeout(() => bottomRef.current?.scrollIntoView({ behavior: 'smooth' }), 300);
+              }}
+              placeholder="Xabar yozing…"
+              rows={1}
+            />
+            <button
+              type="button"
+              className={sending ? `${s.send} ${s.sending}` : s.send}
+              onPointerDown={e => e.preventDefault()} // keep focus on the textarea
+              onClick={send}
+              disabled={!text.trim() || sending}
+              aria-label="Yuborish"
+            >
+              {sending ? <span className={s.spinner} aria-hidden /> : <ArrowUp />}
+            </button>
+          </>
+        )}
       </div>
     </div>
   );
