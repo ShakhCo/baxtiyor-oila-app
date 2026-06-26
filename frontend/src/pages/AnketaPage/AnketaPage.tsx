@@ -1,5 +1,5 @@
 import { backButton } from '@tma.js/sdk-react';
-import { useEffect, useMemo, useState, type ChangeEvent, type FC, type FormEvent } from 'react';
+import { useEffect, useMemo, useRef, useState, type ChangeEvent, type FC, type FormEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 import { Page } from '@/components/Page.tsx';
@@ -31,36 +31,73 @@ type AnketaResponse =
   & { submitted: boolean; status?: Status; rejection_reason?: string }
   & Partial<Record<keyof FormShape, string | number>>;
 
-type StepDef = {
-  id: number;
-  title: string;
-  subtitle: string;
-  required: (keyof FormShape)[];
-  validate?: (form: FormShape) => boolean;
-};
+// Per-field validation. Returns a short Uzbek error message, or null when the
+// field is acceptable. Required fields reject empty input; free-text fields get
+// a sane min/max length; structured fields (age, gender, region, tariff) are
+// checked against their allowed shape so a user can't submit a wrong value.
+// Keep these rules in sync with the backend serializer (profiles/serializers.py).
+const NAME_OK = /^[\p{L}][\p{L}\s.'‘’-]*$/u;
 
-const STEPS: StepDef[] = [
-  {
-    id: 1,
-    title: 'O‘zingiz haqida',
-    subtitle: 'Avvalo, sizni yaqindan tanishtiring.',
-    required: ['full_name', 'gender', 'age', 'birthplace_region', 'current_residence_germany'],
-    validate: (f) => {
-      const a = Number(f.age);
-      return Number.isFinite(a) && a >= 18 && a <= 99;
-    },
-  },
-  { id: 2, title: 'Ma‘lumot va kasb', subtitle: 'Ta‘lim va mashg‘ulotingiz haqida.', required: ['education', 'profession_hobbies'] },
-  { id: 3, title: 'Oilaviy holat',    subtitle: 'Oilangiz, ildizlaringiz va qadriyatlaringiz.', required: ['marital_status', 'family_info', 'nationality_languages'] },
-  { id: 4, title: 'Germaniyadagi hayot', subtitle: 'Hozirgi holat va kelajak rejalari.', required: [] },
-  { id: 5, title: 'Shaxsiyat va juftlik', subtitle: 'O‘zingiz va orzungizdagi umr yo‘ldosh.', required: ['self_description', 'partner_expectations'] },
-  { id: 6, title: 'Tarif', subtitle: 'So‘nggi qadam — xizmat turini tanlang.', required: ['tariff'] },
-];
+function fieldError(key: keyof FormShape, form: FormShape): string | null {
+  const v = String(form[key] ?? '').trim();
+  switch (key) {
+    case 'full_name':
+      if (!v) return 'Ism-sharifingizni kiriting.';
+      if (v.length < 3) return 'Ism-sharif kamida 3 ta harfdan iborat bo‘lsin.';
+      if (v.length > 100) return 'Ism-sharif juda uzun (100 belgigacha).';
+      if (!NAME_OK.test(v)) return 'Ism-sharifda faqat harflar bo‘lsin.';
+      return null;
 
-function stepIsValid(step: StepDef, form: FormShape): boolean {
-  if (step.required.some(k => !String(form[k]).trim())) return false;
-  if (step.validate && !step.validate(form)) return false;
-  return true;
+    case 'gender':
+      return v === 'male' || v === 'female' ? null : 'Jinsingizni tanlang.';
+
+    case 'age': {
+      if (!v) return 'Yoshingizni kiriting.';
+      if (!/^\d{1,3}$/.test(v)) return 'Yosh butun son bo‘lishi kerak.';
+      const a = Number(v);
+      if (a < 18 || a > 99) return 'Yosh 18 dan 99 gacha bo‘lishi kerak.';
+      return null;
+    }
+
+    case 'birthplace_region':
+      return REGIONS.some(r => r.value === v) ? null : 'Tug‘ilgan joyingizni tanlang.';
+
+    case 'current_residence_germany':
+      if (!v) return 'Hozir istiqomat qiladigan shaharni kiriting.';
+      if (v.length < 2) return 'Juda qisqa.';
+      if (v.length > 120) return 'Juda uzun (120 belgigacha).';
+      return null;
+
+    case 'tariff':
+      return v === 'basic' || v === 'standart' ? null : 'Tarifni tanlang.';
+
+    case 'education':
+      if (!v) return 'Ma‘lumotingizni kiriting.';
+      if (v.length < 2) return 'Juda qisqa.';
+      if (v.length > 500) return 'Juda uzun (500 belgigacha).';
+      return null;
+
+    case 'profession_hobbies':
+    case 'marital_status':
+    case 'family_info':
+    case 'nationality_languages':
+    case 'self_description':
+    case 'partner_expectations':
+      if (!v) return 'Bu maydonni to‘ldiring.';
+      if (v.length < 2) return 'Juda qisqa.';
+      if (v.length > 2000) return 'Juda uzun (2000 belgigacha).';
+      return null;
+
+    // optional free-text fields — only guard the upper bound
+    case 'height_weight':
+    case 'religion':
+    case 'germany_status':
+      if (v.length > 1000) return 'Juda uzun (1000 belgigacha).';
+      return null;
+
+    default:
+      return null;
+  }
 }
 
 // Fields shown in the read-only review of a submitted anketa.
@@ -119,8 +156,10 @@ export const AnketaPage: FC = () => {
   const [existing, setExisting]   = useState(cachedStatus != null);
   const [error, setError]     = useState<string | null>(null);
   const [viewing, setViewing] = useState(false); // read-only view of submitted anketa
-  const [animateSuccess, setAnimateSuccess] = useState(false); // play opening only on fresh submit
+  const [editing, setEditing] = useState(false); // re-open the form to edit a pending anketa
   const [regionOpen, setRegionOpen] = useState(false); // custom birthplace picker sheet
+  const [showErrors, setShowErrors] = useState(false);  // reveal per-field errors after a submit attempt
+  const errorRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     apiGet<AnketaResponse>('/anketa')
@@ -173,11 +212,15 @@ export const AnketaPage: FC = () => {
       backButton.show();
       return backButton.onClick(() => setViewing(false));
     }
+    if (submitted && editing) {
+      backButton.show();
+      return backButton.onClick(() => setEditing(false));
+    }
     if (!loading && !submitted) {
       backButton.show();
       return backButton.onClick(() => navigate(-1));
     }
-  }, [loading, submitted, viewing, navigate]);
+  }, [loading, submitted, viewing, editing, navigate]);
 
   function onField<K extends keyof FormShape>(key: K) {
     return (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
@@ -201,11 +244,36 @@ export const AnketaPage: FC = () => {
     }
   }
 
-  const allValid = useMemo(() => STEPS.every(st => stepIsValid(st, form)), [form]);
+  // Validate every field once; drives submit-gating, the inline messages, and
+  // the "what's wrong" summary banner.
+  const fieldErrors = useMemo(() => {
+    const errs: Partial<Record<keyof FormShape, string>> = {};
+    for (const { key } of REVIEW_FIELDS) {
+      const msg = fieldError(key, form);
+      if (msg) errs[key] = msg;
+    }
+    return errs;
+  }, [form]);
+  const allValid = useMemo(() => Object.keys(fieldErrors).length === 0, [fieldErrors]);
+  // Only surface a field's error once the user has tried to submit.
+  const errOf = (key: keyof FormShape) => (showErrors ? fieldErrors[key] : undefined);
 
   async function onSubmit(e: FormEvent) {
     e.preventDefault();
-    if (!allValid || submitting) return;
+    if (submitting) return;
+    if (!allValid) {
+      // Reveal inline errors and tell the user exactly what to fix, then jump to
+      // the first offending field — instead of a silently-disabled button.
+      setShowErrors(true);
+      const bad = REVIEW_FIELDS.filter(f => fieldErrors[f.key]);
+      setError(`Iltimos, quyidagi maydonlarni to‘g‘ri to‘ldiring: ${bad.map(f => f.label).join(', ')}.`);
+      const firstKey = bad[0]?.key;
+      requestAnimationFrame(() => {
+        const el = firstKey ? document.getElementById(`field-${firstKey}`) : errorRef.current;
+        el?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      });
+      return;
+    }
     setSubmitting(true);
     setError(null);
     try {
@@ -213,9 +281,9 @@ export const AnketaPage: FC = () => {
       const sender = existing ? apiPut : apiPost;
       const resp = await sender<AnketaResponse>('/anketa', payload);
       const st = resp.status ?? 'pending';
-      setAnimateSuccess(true);   // play the opening animation for this fresh submit
       setSubmitted(true);
       setExisting(true);
+      setEditing(false);         // an edit was saved → return to the status screen
       setStatus(st);
       setSubmittedStatus(st);    // cache so future visits skip the loading screen
     } catch (err) {
@@ -293,22 +361,21 @@ export const AnketaPage: FC = () => {
     );
   }
 
-  if (submitted) {
+  if (submitted && !editing) {
     return (
       <Page back>
         <div className={s.root}>
           <div className={s.content}>
-            <div className={animateSuccess ? `${s.statusWrap} ${s.animateSuccess}` : s.statusWrap}>
-              <div className={s.statusLogoWrap}>
-                <picture>
-                  <source srcSet="/logo.avif" type="image/avif" />
-                  <img className={s.statusLogo} src="/logo.png" alt="" width={88} height={88} />
-                </picture>
-              </div>
-              <h2 className={s.statusTitle}>Rahmat!</h2>
-              <p className={s.statusText}>
-                Anketangiz qabul qilindi. Tez orada admin siz bilan bog‘lanadi.
+            <header className={s.statusHeader}>
+              <h1 className={s.statusHeading}>Anketangiz</h1>
+              <p className={s.statusLead}>
+                {status === 'rejected'
+                  ? 'Anketangiz qaytarildi. Tahrirlab, qaytadan yuboring.'
+                  : 'Admin tomonidan tasdiqlangach, sizga mos nomzodlar ro‘yxatini ko‘rasiz.'}
               </p>
+            </header>
+
+            <div className={s.statusCard}>
               <span
                 className={[
                   s.statusBadge,
@@ -319,20 +386,35 @@ export const AnketaPage: FC = () => {
               >
                 {status === 'approved' ? 'Tasdiqlangan' :
                  status === 'rejected' ? 'Rad etilgan' :
-                                         'Ko‘rib chiqilmoqda'}
+                                         'To‘lov kutilmoqda'}
               </span>
+              <p className={s.statusCardText}>
+                {status === 'rejected'
+                  ? 'Quyidagi izohga ko‘ra ma‘lumotlarni to‘g‘rilang.'
+                  : 'Anketangiz qabul qilindi. To‘lov tasdiqlangach, admin anketangizni ko‘rib chiqadi.'}
+              </p>
               {status === 'rejected' && rejection && (
-                <p className={s.statusText} style={{ marginTop: 12 }}>{rejection}</p>
+                <p className={s.statusReason}>{rejection}</p>
               )}
-              <div className={s.statusActions}>
+            </div>
+
+            <div className={s.statusActions}>
+              {status !== 'rejected' && (
                 <button
                   type="button"
-                  className={s.statusViewBtn}
-                  onClick={() => setViewing(true)}
+                  className={s.statusPrimaryBtn}
+                  onClick={() => navigate('/chat')}
                 >
-                  Anketani ko‘rish
+                  Admin bilan suhbat
                 </button>
-              </div>
+              )}
+              <button
+                type="button"
+                className={status !== 'rejected' ? s.statusSecondaryBtn : s.statusPrimaryBtn}
+                onClick={() => { setError(null); setEditing(true); }}
+              >
+                Anketani tahrirlash
+              </button>
             </div>
           </div>
         </div>
@@ -346,8 +428,10 @@ export const AnketaPage: FC = () => {
         <div className={s.fadeTop} aria-hidden />
         <div className={s.content}>
           <header className={s.formHeader}>
-            <h1 className={s.stepTitle}>Anketa to‘ldirish</h1>
-            <p className={s.stepSubtitle}>Iltimos, barcha maydonlarni to‘ldiring.</p>
+            <h1 className={s.stepTitle}>{editing ? 'Anketani tahrirlash' : 'Anketa to‘ldirish'}</h1>
+            <p className={s.stepSubtitle}>
+              {editing ? 'Ma‘lumotlarni yangilang.' : 'Iltimos, barcha maydonlarni to‘ldiring.'}
+            </p>
 
             <div className={s.mission}>
               <span className={s.missionLabel}>Niyatimiz</span>
@@ -357,12 +441,12 @@ export const AnketaPage: FC = () => {
             </div>
           </header>
 
-          {error && <div className={s.errorBanner}>{error}</div>}
+          {error && <div ref={errorRef} className={s.errorBanner}>{error}</div>}
 
           <section className={s.section}>
             <h2 className={s.groupTitle}>O‘zingiz haqida</h2>
 
-                <Field label="To‘liq ism-sharif" required>
+                <Field label="To‘liq ism-sharif" required id="field-full_name" error={errOf('full_name')}>
                   <input
                     className={s.input}
                     value={form.full_name}
@@ -373,7 +457,7 @@ export const AnketaPage: FC = () => {
                   />
                 </Field>
 
-                <Field label="Jinsi" required>
+                <Field label="Jinsi" required id="field-gender" error={errOf('gender')}>
                   <div className={s.segmented} role="radiogroup" aria-label="Jinsi">
                     <button
                       type="button"
@@ -396,7 +480,7 @@ export const AnketaPage: FC = () => {
                   </div>
                 </Field>
 
-                <Field label="Yoshi" required>
+                <Field label="Yoshi" required id="field-age" error={errOf('age')}>
                   <input
                     className={s.input}
                     type="number"
@@ -410,7 +494,7 @@ export const AnketaPage: FC = () => {
                   />
                 </Field>
 
-                <Field label="Tug‘ilgan joyi" required>
+                <Field label="Tug‘ilgan joyi" required id="field-birthplace_region" error={errOf('birthplace_region')}>
                   <button
                     type="button"
                     className={form.birthplace_region ? s.selectBtn : `${s.selectBtn} ${s.selectBtnEmpty}`}
@@ -425,6 +509,8 @@ export const AnketaPage: FC = () => {
                 <Field
                   label="Olmoniyada hozirda istiqomat qiladigan joy"
                   required
+                  id="field-current_residence_germany"
+                  error={errOf('current_residence_germany')}
                 >
                   <input
                     className={s.input}
@@ -435,7 +521,7 @@ export const AnketaPage: FC = () => {
                   />
                 </Field>
 
-                <Field label="Bo‘yi, vazni">
+                <Field label="Bo‘yi, vazni" id="field-height_weight" error={errOf('height_weight')}>
                   <input
                     className={s.input}
                     value={form.height_weight}
@@ -452,7 +538,7 @@ export const AnketaPage: FC = () => {
 
             <h2 className={s.groupTitle}>Ma‘lumot va kasb</h2>
 
-                <Field label="Ma‘lumoti va Oliygohi 📚" required>
+                <Field label="Ma‘lumoti va Oliygohi 📚" required id="field-education" error={errOf('education')}>
                   <input
                     className={s.input}
                     value={form.education}
@@ -465,6 +551,8 @@ export const AnketaPage: FC = () => {
                 <Field
                   label="Kasbi, mutaxassisligi, qiziqishlari va xobbiysi"
                   required
+                  id="field-profession_hobbies"
+                  error={errOf('profession_hobbies')}
                 >
                   <textarea
                     className={s.textarea}
@@ -480,6 +568,8 @@ export const AnketaPage: FC = () => {
                 <Field
                   label="Oilaviy holati (turmush qurmagan / ajrashgan, farzandlar)"
                   required
+                  id="field-marital_status"
+                  error={errOf('marital_status')}
                 >
                   <textarea
                     className={s.textarea}
@@ -493,6 +583,8 @@ export const AnketaPage: FC = () => {
                 <Field
                   label="Oilada necha farzand va ota-onasi kimlar"
                   required
+                  id="field-family_info"
+                  error={errOf('family_info')}
                 >
                   <textarea
                     className={s.textarea}
@@ -506,6 +598,8 @@ export const AnketaPage: FC = () => {
                 <Field
                   label="Millati, ona tili va boshqa tillar"
                   required
+                  id="field-nationality_languages"
+                  error={errOf('nationality_languages')}
                 >
                   <textarea
                     className={s.textarea}
@@ -518,6 +612,8 @@ export const AnketaPage: FC = () => {
 
                 <Field
                   label="Din va unga bo‘lgan munosabati"
+                  id="field-religion"
+                  error={errOf('religion')}
                 >
                   <textarea
                     className={s.textarea}
@@ -532,6 +628,8 @@ export const AnketaPage: FC = () => {
 
               <Field
                 label="Germaniyadagi statusi va kelajak rejalari"
+                id="field-germany_status"
+                error={errOf('germany_status')}
               >
                 <textarea
                   className={s.textarea}
@@ -548,6 +646,8 @@ export const AnketaPage: FC = () => {
                 <Field
                   label="O‘zingizga ta‘rif bering"
                   required
+                  id="field-self_description"
+                  error={errOf('self_description')}
                 >
                   <textarea
                     className={s.textarea}
@@ -562,6 +662,8 @@ export const AnketaPage: FC = () => {
                 <Field
                   label="Sizning idealingizdagi umr yo‘ldoshi va talablari"
                   required
+                  id="field-partner_expectations"
+                  error={errOf('partner_expectations')}
                 >
                   <textarea
                     className={s.textarea}
@@ -574,7 +676,7 @@ export const AnketaPage: FC = () => {
                 </Field>
             <h2 className={s.groupTitle}>Tarif</h2>
 
-                <Field label="Qaysi tarifni tanlaysiz" required>
+                <Field label="Qaysi tarifni tanlaysiz" required id="field-tariff" error={errOf('tariff')}>
                   <div className={s.tariffGroup}>
                     <label className={`${s.tariffOption} ${form.tariff === 'basic' ? s.tariffSelected : ''}`}>
                       <input
@@ -616,9 +718,9 @@ export const AnketaPage: FC = () => {
           <button
             type="submit"
             className={s.submitButton}
-            disabled={!allValid || submitting}
+            disabled={submitting}
           >
-            {submitting ? 'Yuborilmoqda…' : 'Anketani yuborish'}
+            {submitting ? 'Yuborilmoqda…' : editing ? 'O‘zgarishlarni saqlash' : 'Anketani yuborish'}
           </button>
         </div>
       </form>
@@ -655,20 +757,23 @@ type FieldProps = {
   label: string;
   labelRu?: string;
   required?: boolean;
+  id?: string;
+  error?: string;
   children: React.ReactNode;
 };
 
-function Field({ label, labelRu, required, children }: FieldProps) {
+function Field({ label, labelRu, required, id, error, children }: FieldProps) {
   // Plain <div> wrapper (not <label>): a <select> nested inside a <label>
   // fails to open its native picker on tap in iOS / Telegram webviews.
   return (
-    <div className={s.field}>
+    <div id={id} className={error ? `${s.field} ${s.fieldInvalid}` : s.field}>
       <span className={s.label}>
         {label}
         {required && <span className={s.required}>*</span>}
         {labelRu && <span className={s.labelRu}>{labelRu}</span>}
       </span>
       {children}
+      {error && <span className={s.fieldError}>{error}</span>}
     </div>
   );
 }

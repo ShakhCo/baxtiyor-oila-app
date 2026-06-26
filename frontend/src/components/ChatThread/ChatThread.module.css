@@ -148,6 +148,15 @@
 .mine .time { color: var(--c-on-accent); opacity: 0.7; }
 .theirs .time { color: var(--c-mute); }
 
+/* read receipt — one tick (sent) is faint, two ticks (read) is bright */
+.tick {
+  display: inline-flex;
+  align-items: center;
+  color: var(--c-on-accent);
+  opacity: 0.55;
+}
+.tickRead { opacity: 1; }
+
 /* composer — glassy overlay pinned to the bottom; messages scroll behind it */
 .inputBar {
   position: absolute;

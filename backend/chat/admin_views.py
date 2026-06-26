@@ -202,13 +202,14 @@ def admin_chat(request, telegram_id: int):
             text=text[:MAX_LEN],
         )
         conv.touch()
-        return Response(serialize_message(msg), status=http_status.HTTP_201_CREATED)
+        return Response(serialize_message(msg, conv), status=http_status.HTTP_201_CREATED)
 
     messages = _messages_after(conv, request.query_params.get("after"))
+    # Opening / polling the thread marks the user's messages read for admins.
     conv.admin_last_read_at = timezone.now()
     conv.save(update_fields=["admin_last_read_at"])
     return Response({
-        "messages": [serialize_message(m) for m in messages],
+        "messages": [serialize_message(m, conv) for m in messages],
         "user": {
             "telegram_id": user.telegram_id,
             "name":        _display_name(user),

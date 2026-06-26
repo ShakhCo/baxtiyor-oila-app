@@ -5,8 +5,10 @@ import { apiGet, apiPost } from '@/api/client';
 
 import s from './ChatThread.module.css';
 
-/** How long a fetched thread is reused before it's refetched. */
-const CHAT_STALE_MS = 30_000;
+/** Poll cadence while a thread is open — fast enough to feel real-time. The
+ *  cache keeps the existing messages between polls, so refetches never flash the
+ *  skeleton (that only shows on the very first, data-less load). */
+const CHAT_POLL_MS = 3_000;
 
 type ChatPayload = { messages?: ChatMessage[] } & Record<string, unknown>;
 
@@ -16,6 +18,8 @@ export type ChatMessage = {
   text: string;
   created_at: string;
   delivery_failed?: boolean;
+  /** True once the other party has read this message (drives the ✓✓ receipt). */
+  read?: boolean;
 };
 
 type Props = {
@@ -57,6 +61,20 @@ function ArrowUp() {
   );
 }
 
+/** Read receipt: one tick = sent, two ticks = read by the other party. */
+function Ticks({ read }: { read: boolean }) {
+  return (
+    <svg width="18" height="11" viewBox="0 0 18 11" fill="none" aria-hidden>
+      <path d="M1 6 L4 9 L9.5 2.5" stroke="currentColor" strokeWidth="1.5"
+        strokeLinecap="round" strokeLinejoin="round" />
+      {read && (
+        <path d="M7.5 9 L13 2.5" stroke="currentColor" strokeWidth="1.5"
+          strokeLinecap="round" strokeLinejoin="round" />
+      )}
+    </svg>
+  );
+}
+
 export const ChatThread: FC<Props> = ({ basePath, mySide, emptyHint, onMeta, onSent, theme = 'dark', bottomSafe = true }) => {
   const queryClient = useQueryClient();
   const queryKey = ['chat', basePath] as const;
@@ -75,8 +93,8 @@ export const ChatThread: FC<Props> = ({ basePath, mySide, emptyHint, onMeta, onS
   const { data, isSuccess } = useQuery({
     queryKey,
     queryFn: () => apiGet<ChatPayload>(basePath),
-    staleTime: CHAT_STALE_MS,
-    refetchInterval: CHAT_STALE_MS,
+    staleTime: CHAT_POLL_MS,
+    refetchInterval: CHAT_POLL_MS,
   });
   const messages = data?.messages ?? [];
   const loaded = isSuccess;
@@ -155,6 +173,11 @@ export const ChatThread: FC<Props> = ({ basePath, mySide, emptyHint, onMeta, onS
                 <span className={s.metaRow}>
                   {failed && <span className={s.failed}>⚠ Yetkazilmadi</span>}
                   <span className={s.time}>{timeLabel(m.created_at)}</span>
+                  {m.sender === mySide && !failed && (
+                    <span className={m.read ? `${s.tick} ${s.tickRead}` : s.tick}>
+                      <Ticks read={!!m.read} />
+                    </span>
+                  )}
                 </span>
               </div>
             </div>

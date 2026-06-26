@@ -10,6 +10,34 @@ class ProfileSerializer(serializers.ModelSerializer):
     # the rows that predate the field) — new/edited anketas must pick a gender
     gender = serializers.ChoiceField(choices=GENDER_CHOICES)
 
+    # Server-side validation mirroring the mini-app form (web/.../AnketaPage.tsx):
+    # the client can be bypassed, so the wrong/empty/over-long values are rejected
+    # here too. birthplace_region / tariff already validate against their model
+    # choices via ModelSerializer.
+    age = serializers.IntegerField(min_value=18, max_value=99)
+    full_name = serializers.CharField(max_length=100)
+    current_residence_germany = serializers.CharField(min_length=2, max_length=120)
+    education = serializers.CharField(min_length=2, max_length=500)
+    profession_hobbies = serializers.CharField(min_length=2, max_length=2000)
+    marital_status = serializers.CharField(min_length=2, max_length=2000)
+    family_info = serializers.CharField(min_length=2, max_length=2000)
+    nationality_languages = serializers.CharField(min_length=2, max_length=2000)
+    self_description = serializers.CharField(min_length=2, max_length=2000)
+    partner_expectations = serializers.CharField(min_length=2, max_length=2000)
+    height_weight = serializers.CharField(max_length=1000, required=False, allow_blank=True)
+    religion = serializers.CharField(max_length=1000, required=False, allow_blank=True)
+    germany_status = serializers.CharField(max_length=1000, required=False, allow_blank=True)
+
+    def validate_full_name(self, value):
+        v = value.strip()
+        if len(v) < 3:
+            raise serializers.ValidationError("Ism-sharif kamida 3 ta harfdan iborat bo‘lsin.")
+        if any(ch.isdigit() for ch in v):
+            raise serializers.ValidationError("Ism-sharifda raqam bo‘lmasin.")
+        if not any(ch.isalpha() for ch in v):
+            raise serializers.ValidationError("Ism-sharifda faqat harflar bo‘lsin.")
+        return v
+
     class Meta:
         model = Profile
         fields = [

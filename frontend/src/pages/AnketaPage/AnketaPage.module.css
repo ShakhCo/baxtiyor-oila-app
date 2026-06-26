@@ -147,6 +147,39 @@
   margin-top: 2px;
 }
 
+/* ───── invalid-field feedback ───── */
+.fieldError {
+  display: block;
+  margin-top: 7px;
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.35;
+  color: var(--warn);
+}
+
+.fieldInvalid .input,
+.fieldInvalid .textarea,
+.fieldInvalid .select,
+.fieldInvalid .selectBtn {
+  border-color: var(--warn);
+  background: rgba(192, 57, 43, 0.05);
+}
+
+.fieldInvalid .input:focus,
+.fieldInvalid .textarea:focus,
+.fieldInvalid .select:focus,
+.fieldInvalid .selectBtn:focus {
+  border-color: var(--warn);
+  box-shadow: 0 0 0 3px rgba(192, 57, 43, 0.15);
+}
+
+/* button-group controls (gender, tariff) flag the whole group */
+.fieldInvalid .segmented,
+.fieldInvalid .tariffGroup {
+  border-radius: 14px;
+  box-shadow: 0 0 0 1px var(--warn);
+}
+
 .input,
 .textarea,
 .select {
@@ -491,9 +524,8 @@
 }
 
 /* AVIF (+ PNG fallback) <picture> stays layout-transparent so the <img> keeps
-   its place in the flex column and the success-logo zoom is unaffected */
-.loadingWrap picture,
-.statusLogoWrap picture { display: contents; }
+   its place in the flex column */
+.loadingWrap picture { display: contents; }
 
 .loadingLogo {
   width: 72px;
@@ -512,75 +544,64 @@
   color: var(--text-mute);
 }
 
-/* ───── confirmation ───── */
-.statusWrap {
-  flex: 1;
-  margin: 0 auto;
-  max-width: 420px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: flex-start;
-  text-align: center;
-  gap: 4px;
-  padding: clamp(48px, 11vh, 110px) 0 48px;
+/* ───── status screen (mobile-app layout) ───── */
+.statusHeader {
+  padding: 6px 0 18px;
 }
 
-/* opening like the home page: the logo enters large and zooms down to size
-   while its reserved height collapses, then the text settles in beneath it */
-.statusLogoWrap {
-  display: flex;
-  justify-content: center;
-  align-items: flex-start;
-  transform-origin: top center;
-  margin-bottom: 32px;
-}
-
-/* opening animation plays only on a fresh submit (.animateSuccess on the wrap);
-   a returning/cached visit shows the success screen instantly, no replay */
-.animateSuccess .statusLogoWrap { animation: statusZoom 1500ms cubic-bezier(0.645, 0.045, 0.355, 1) both; }
-.animateSuccess .statusTitle    { animation: statusRise 640ms cubic-bezier(0.645, 0.045, 0.355, 1) 780ms both; }
-.animateSuccess .statusText     { animation: statusRise 640ms cubic-bezier(0.645, 0.045, 0.355, 1) 900ms both; }
-.animateSuccess .statusBadge    { animation: statusRise 640ms cubic-bezier(0.645, 0.045, 0.355, 1) 1020ms both; }
-.animateSuccess .statusActions  { animation: statusRise 640ms cubic-bezier(0.645, 0.045, 0.355, 1) 1160ms both; }
-
-.statusLogo {
-  width: 88px;
-  height: 88px;
-  border-radius: 50%;
-  object-fit: cover;
-  background: #fff;
-  box-shadow:
-    0 0 0 1px rgba(179, 79, 99, 0.4),
-    0 0 0 5px var(--surface),
-    0 14px 30px -18px rgba(0, 0, 0, 0.22);
-}
-
-.statusTitle {
-  font-family: inherit;
-  font-size: 32px;
-  font-weight: 800;
-  letter-spacing: -0.01em;
+.statusHeading {
   margin: 0 0 8px;
+  font-family: inherit;
+  font-size: 26px;
+  font-weight: 800;
+  line-height: 1.12;
+  letter-spacing: -0.02em;
   color: var(--text);
 }
 
-.statusText {
-  font-size: 14px;
-  color: var(--text-soft);
-  line-height: 1.55;
+.statusLead {
   margin: 0;
-  max-width: 32ch;
+  font-size: 15px;
+  line-height: 1.55;
+  color: var(--text-soft);
+}
+
+.statusCard {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 12px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  padding: 20px;
+}
+
+.statusCardText {
+  margin: 0;
+  font-size: 15px;
+  line-height: 1.55;
+  color: var(--text);
+}
+
+.statusReason {
+  margin: 0;
+  width: 100%;
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--warn);
+  background: rgba(192, 57, 43, 0.07);
+  border-radius: 10px;
+  padding: 10px 12px;
 }
 
 .statusBadge {
   display: inline-block;
-  padding: 7px 16px;
-  margin-top: 18px;
+  padding: 7px 14px;
   border-radius: 999px;
   font-size: 13px;
-  font-weight: 600;
-  letter-spacing: 0.12em;
+  font-weight: 700;
+  letter-spacing: 0.1em;
   text-transform: uppercase;
 }
 
@@ -617,27 +638,48 @@
 .statusActions {
   display: flex;
   flex-direction: column;
-  align-items: center;
-  gap: 12px;
-  margin-top: 28px;
+  align-items: stretch;
+  gap: 10px;
+  margin-top: 20px;
 }
 
-.statusViewBtn {
+.statusPrimaryBtn {
   appearance: none;
   border: none;
   cursor: pointer;
+  width: 100%;
   background: var(--gold);
   color: #ffffff;
   font-family: inherit;
-  font-size: 18px;
+  font-size: 17px;
   font-weight: 700;
   letter-spacing: 0.01em;
-  padding: 13px 30px;
-  border-radius: 13px;
+  padding: 15px 24px;
+  border-radius: 14px;
   transition: background 0.15s ease;
 }
 
-.statusViewBtn:hover { background: var(--gold-2); }
+.statusPrimaryBtn:hover  { background: var(--gold-2); }
+.statusPrimaryBtn:active { opacity: 0.9; }
+
+.statusSecondaryBtn {
+  appearance: none;
+  cursor: pointer;
+  width: 100%;
+  background: var(--surface);
+  color: var(--text);
+  border: 1px solid var(--line-2);
+  font-family: inherit;
+  font-size: 17px;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  padding: 15px 24px;
+  border-radius: 14px;
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+.statusSecondaryBtn:hover  { background: var(--surface-2); border-color: var(--text-mute); }
+.statusSecondaryBtn:active { opacity: 0.9; }
 
 .linkButton {
   appearance: none;
@@ -707,24 +749,7 @@
   50%      { opacity: 1;    transform: scale(1); }
 }
 
-/* success-screen opening (mirrors the home page logo zoom) */
-@keyframes statusZoom {
-  from { transform: scale(2.6); height: 40vh; }
-  to   { transform: scale(1);   height: 88px; }
-}
-
-@keyframes statusRise {
-  from { opacity: 0; transform: translateY(12px); }
-  to   { opacity: 1; transform: translateY(0); }
-}
-
 @media (prefers-reduced-motion: reduce) {
-  .section, .statusWrap, .review { animation: none; }
+  .section, .review { animation: none; }
   .loadingLogo { animation: none; }
-  .animateSuccess .statusLogoWrap,
-  .animateSuccess .statusTitle,
-  .animateSuccess .statusText,
-  .animateSuccess .statusBadge,
-  .animateSuccess .statusActions { animation: none; }
-  .statusLogoWrap { height: 88px; }
 }

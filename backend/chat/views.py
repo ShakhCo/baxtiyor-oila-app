@@ -9,13 +9,24 @@ from chat.notifications import notify_admin_group_new_message
 MAX_LEN = 4000
 
 
-def serialize_message(m: Message) -> dict:
+def serialize_message(m: Message, conv: "Conversation | None" = None) -> dict:
+    # A message is "read" once the *other* party's last-read time has caught up to
+    # it: a user message is read when admins last read at/after it was sent, and an
+    # admin message is read when the user last read at/after it was sent. Drives the
+    # ✓/✓✓ receipt the sender sees on their own bubbles.
+    read = False
+    if conv is not None:
+        recipient_last_read = (
+            conv.admin_last_read_at if m.sender == Message.USER else conv.user_last_read_at
+        )
+        read = recipient_last_read is not None and recipient_last_read >= m.created_at
     return {
         "id": m.id,
         "sender": m.sender,
         "text": m.text,
         "created_at": m.created_at.isoformat(),
         "delivery_failed": m.delivery_failed,
+        "read": read,
     }
 
 
@@ -47,9 +58,10 @@ def my_chat(request):
         )
         conv.touch()
         notify_admin_group_new_message(request.user, msg.text)
-        return Response(serialize_message(msg), status=http_status.HTTP_201_CREATED)
+        return Response(serialize_message(msg, conv), status=http_status.HTTP_201_CREATED)
 
     messages = _messages_after(conv, request.query_params.get("after"))
+    # Opening / polling the thread marks everything the user can see as read.
     conv.user_last_read_at = timezone.now()
     conv.save(update_fields=["user_last_read_at"])
-    return Response({"messages": [serialize_message(m) for m in messages]})
+    return Response({"messages": [serialize_message(m, conv) for m in messages]})

@@ -147,8 +147,11 @@ export const AdminChatPage: FC = () => {
     },
     initialPageParam: 0,
     getNextPageParam: (last, all) => (last.has_more ? all.length * PAGE_SIZE : undefined),
-    staleTime: 15_000,
-    refetchInterval: 15_000,
+    // Poll the inbox for near real-time unread counts / previews / reordering.
+    // The cache holds the rows between polls, so this never flashes the skeleton
+    // (that only shows while there's no data at all).
+    staleTime: 5_000,
+    refetchInterval: 5_000,
   });
 
   const items = chats.data?.pages.flatMap(p => p.items) ?? [];
