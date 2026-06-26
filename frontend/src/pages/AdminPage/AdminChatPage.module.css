@@ -28,27 +28,16 @@
   padding-left: calc(var(--tg-viewport-content-safe-area-inset-left, 0px) + 18px);
 }
 
-/* top & bottom edge fades */
-.fadeTop,
-.fadeBottom {
+/* top edge fade */
+.fadeTop {
   position: fixed;
   left: 0;
   right: 0;
   pointer-events: none;
-  z-index: 6;
-}
-
-.fadeTop {
   top: 0;
   height: calc(var(--tg-viewport-safe-area-inset-top, 0px) + var(--tg-viewport-content-safe-area-inset-top, 0px) + 8px);
   background: var(--bg);
   z-index: 7;
-}
-
-.fadeBottom {
-  bottom: var(--bottom-nav-h);
-  height: 56px;
-  background: linear-gradient(to top, var(--bg) 40%, rgba(255, 255, 255, 0));
 }
 
 .header {

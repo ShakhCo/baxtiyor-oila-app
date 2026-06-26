@@ -256,7 +256,6 @@ export const AdminChatPage: FC = () => {
     <Page back>
       <div className={s.root}>
         <div className={s.fadeTop} aria-hidden />
-        <div className={s.fadeBottom} aria-hidden />
 
         <header className={s.header}>
           <div>
