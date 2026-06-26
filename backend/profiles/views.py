@@ -4,6 +4,7 @@ from rest_framework.response import Response
 
 from profiles.models import Profile
 from profiles.serializers import MatchSerializer, ProfileSerializer
+from profiles.status_labels import assign_status_label
 
 
 def _contact_from(user):
@@ -44,6 +45,8 @@ def my_anketa(request):
         serializer = ProfileSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         serializer.save(user=user, contact_info=_contact_from(user))
+        # New anketas start pending → tag the support thread "Kutilmoqda".
+        assign_status_label(user, serializer.instance.status)
         return Response(
             {"submitted": True, **serializer.data},
             status=http_status.HTTP_201_CREATED,
@@ -58,6 +61,8 @@ def my_anketa(request):
     serializer = ProfileSerializer(profile, data=request.data)
     serializer.is_valid(raise_exception=True)
     serializer.save(contact_info=_contact_from(user))
+    # Keep the lifecycle label in sync with the (unchanged) status on edit.
+    assign_status_label(user, serializer.instance.status)
     return Response({"submitted": True, **serializer.data})
 
 

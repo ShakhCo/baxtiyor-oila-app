@@ -4,35 +4,17 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework.response import Response
 
 from accounts.permissions import IsAdmin
-from chat.models import Conversation, Label
 from profiles.matching import match_percent, match_score
 from profiles.models import Profile
 from profiles.serializers import ProfileSerializer
-
-# Chat label applied to the user's support thread based on the anketa status, so
-# admins can filter the inbox by it. Mutually exclusive (pending = no label).
-STATUS_LABELS = {"approved": "Tasdiqlangan", "rejected": "Rad etilgan"}
-_ALL_STATUS_LABELS = set(STATUS_LABELS.values())
-
-
-def _assign_status_label(user, status):
-    """Replace any previous status label with the one matching `status`
-    (pending clears it). Other labels — e.g. tariff — are preserved."""
-    conv, _ = Conversation.objects.get_or_create(user=user)
-    labels = [l for l in (conv.labels or []) if l not in _ALL_STATUS_LABELS]
-    new = STATUS_LABELS.get(status)
-    if new:
-        Label.objects.get_or_create(name=new)  # keep it in the global filter set
-        labels = [new] + labels  # prepend so it survives the cap
-    conv.labels = labels[:8]
-    conv.save(update_fields=["labels"])
+from profiles.status_labels import assign_status_label
 
 
 def _apply_status(profile, new_status, reason=""):
     profile.status = new_status
     profile.rejection_reason = reason if new_status == "rejected" else ""
     profile.save(update_fields=["status", "rejection_reason", "updated_at"])
-    _assign_status_label(profile.user, new_status)
+    assign_status_label(profile.user, new_status)
 
 
 def _summary(p: Profile) -> dict:
