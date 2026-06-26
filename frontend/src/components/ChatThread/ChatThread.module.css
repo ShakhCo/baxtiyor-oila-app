@@ -227,6 +227,14 @@
   border-top-right-radius: 12px;
 }
 
+/* the composer pill wraps the attach icon + textarea so the paperclip sits
+   inside the input's left edge */
+.inputWrap {
+  flex: 1;
+  position: relative;
+  display: flex;
+}
+
 .input {
   flex: 1;
   appearance: none;
@@ -234,7 +242,7 @@
   max-height: 132px;
   overflow-y: auto;
   box-sizing: border-box;
-  padding: 12px 14px;
+  padding: 12px 14px 12px 44px;
   background: var(--c-input-bg);
   color: var(--c-text);
   border: 1px solid var(--c-line-2);
@@ -248,11 +256,15 @@
 .input::placeholder { color: var(--c-placeholder); }
 .input:focus { outline: none; border-color: var(--c-accent); }
 
-/* photo attach — quiet icon button to the left of the composer */
+/* attach — quiet icon button nested inside the input's left edge, pinned to
+   the bottom so it stays put as the textarea grows */
 .attach {
-  flex: none;
-  width: 40px;
-  height: 44px;
+  position: absolute;
+  left: 5px;
+  bottom: 5px;
+  z-index: 1;
+  width: 36px;
+  height: 36px;
   display: inline-flex;
   align-items: center;
   justify-content: center;

@@ -63,13 +63,11 @@ function ArrowUp() {
   );
 }
 
-function ImageIcon() {
+function Paperclip() {
   return (
     <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden>
-      <rect x="3.5" y="5" width="17" height="14" rx="3" stroke="currentColor" strokeWidth="1.7" />
-      <circle cx="8.5" cy="10" r="1.6" fill="currentColor" />
-      <path d="M5 17.5 L10 12.5 L13 15.5 L16 12 L19.5 16" stroke="currentColor"
-        strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M21 11.4 L12.1 20.3 a5 5 0 0 1-7.07-7.07 l8.49-8.49 a3.33 3.33 0 0 1 4.71 4.71 l-8.49 8.49 a1.67 1.67 0 0 1-2.36-2.36 l7.78-7.78"
+        stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" />
     </svg>
   );
 }
@@ -247,28 +245,30 @@ export const ChatThread: FC<Props> = ({ basePath, mySide, emptyHint, onMeta, onS
               onChange={onPickPhoto}
               hidden
             />
-            <button
-              type="button"
-              className={s.attach}
-              onPointerDown={e => e.preventDefault()} // keep focus on the textarea
-              onClick={() => fileRef.current?.click()}
-              disabled={uploading}
-              aria-label="Rasm biriktirish"
-            >
-              {uploading ? <span className={s.spinner} aria-hidden /> : <ImageIcon />}
-            </button>
-            <textarea
-              ref={inputRef}
-              className={s.input}
-              value={text}
-              onChange={e => setText(e.target.value)}
-              onFocus={() => {
-                // wait for the keyboard to animate up, then pin to the latest message
-                setTimeout(() => bottomRef.current?.scrollIntoView({ behavior: 'smooth' }), 300);
-              }}
-              placeholder="Xabar yozing…"
-              rows={1}
-            />
+            <div className={s.inputWrap}>
+              <button
+                type="button"
+                className={s.attach}
+                onPointerDown={e => e.preventDefault()} // keep focus on the textarea
+                onClick={() => fileRef.current?.click()}
+                disabled={uploading}
+                aria-label="Fayl biriktirish"
+              >
+                {uploading ? <span className={s.spinner} aria-hidden /> : <Paperclip />}
+              </button>
+              <textarea
+                ref={inputRef}
+                className={s.input}
+                value={text}
+                onChange={e => setText(e.target.value)}
+                onFocus={() => {
+                  // wait for the keyboard to animate up, then pin to the latest message
+                  setTimeout(() => bottomRef.current?.scrollIntoView({ behavior: 'smooth' }), 300);
+                }}
+                placeholder="Xabar yozing…"
+                rows={1}
+              />
+            </div>
             <button
               type="button"
               className={sending ? `${s.send} ${s.sending}` : s.send}
