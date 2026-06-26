@@ -2,6 +2,7 @@ import { useEffect, useState, type FC } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 
 import { apiGet } from '@/api/client';
+import { useSheetOpen } from '@/stores/ui';
 
 import s from './BottomNav.module.css';
 
@@ -46,6 +47,7 @@ type Tab = { key: string; label: string; to: string; Icon: FC<IconProps> };
 export const BottomNav: FC = () => {
   const location = useLocation();
   const navigate = useNavigate();
+  const sheetOpen = useSheetOpen();
   const [isAdmin, setIsAdmin] = useState(false);
 
   // Mounted once (outside <Routes>), so this runs a single time per launch.
@@ -72,7 +74,11 @@ export const BottomNav: FC = () => {
     path === '/chat' || path === '/admin/chat' ? 'chat' : '';
 
   return (
-    <nav className={s.nav} aria-label="Asosiy navigatsiya">
+    <nav
+      className={sheetOpen ? `${s.nav} ${s.hidden}` : s.nav}
+      aria-label="Asosiy navigatsiya"
+      aria-hidden={sheetOpen || undefined}
+    >
       {tabs.map(({ key, label, to, Icon }) => {
         const on = key === activeKey;
         return (

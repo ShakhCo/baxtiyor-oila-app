@@ -5,6 +5,7 @@ import { useInfiniteQuery, useQuery, useQueryClient } from '@tanstack/react-quer
 import { Page } from '@/components/Page.tsx';
 import { LabelSheet } from '@/components/LabelSheet/LabelSheet';
 import { apiGet, apiPost } from '@/api/client';
+import { useHideBottomNav } from '@/stores/ui';
 
 import s from './AdminChatPage.module.css';
 import sheet from '@/pages/ChatPage/ChatPage.module.css';
@@ -118,6 +119,8 @@ export const AdminChatPage: FC = () => {
   const [draft, setDraft] = useState('');
   const [scrolledDown, setScrolledDown] = useState(false);
   const [labelTarget, setLabelTarget] = useState<Item | null>(null);
+  // hide the tab bar while the "new label" sheet is open (LabelSheet hides itself)
+  useHideBottomNav(adding);
   const searchRef = useRef<HTMLInputElement>(null);
   const sentinelRef = useRef<HTMLDivElement>(null);
   const pressTimer = useRef<ReturnType<typeof setTimeout> | null>(null);

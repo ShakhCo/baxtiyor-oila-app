@@ -1,6 +1,7 @@
 import { useState, type FC } from 'react';
 
 import { apiPost } from '@/api/client';
+import { useHideBottomNav } from '@/stores/ui';
 import s from '@/pages/ChatPage/ChatPage.module.css';
 
 type Props = {
@@ -19,6 +20,7 @@ type Props = {
 // free-text creation here — new labels are created from the chat list's "+".
 export const LabelSheet: FC<Props> = ({ telegramId, initial, allLabels, onClose, onSaved }) => {
   const [labels, setLabels] = useState<string[]>(initial);
+  useHideBottomNav(); // hide the tab bar while this sheet is up
 
   function save(next: string[]) {
     const clean = Array.from(new Set(next)).slice(0, 8);

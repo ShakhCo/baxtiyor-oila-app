@@ -12,6 +12,14 @@
   -webkit-backdrop-filter: blur(18px) saturate(1.3);
   backdrop-filter: blur(18px) saturate(1.3);
   border-top: 1px solid rgba(40, 30, 16, 0.10);
+  transition: transform 0.22s ease, opacity 0.22s ease;
+}
+
+/* slid out of view while a sheet is open */
+.hidden {
+  transform: translateY(110%);
+  opacity: 0;
+  pointer-events: none;
 }
 
 .item {

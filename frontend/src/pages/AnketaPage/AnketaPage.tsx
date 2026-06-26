@@ -5,6 +5,7 @@ import { useNavigate } from 'react-router-dom';
 import { Page } from '@/components/Page.tsx';
 import { apiGet, apiPost, apiPut } from '@/api/client';
 import { useAnketaDraft, type FormShape, type Status } from '@/stores/anketaDraft';
+import { useHideBottomNav } from '@/stores/ui';
 
 import { Matches } from './Matches';
 import { PhotoUpload } from './PhotoUpload';
@@ -158,6 +159,7 @@ export const AnketaPage: FC = () => {
   const [viewing, setViewing] = useState(false); // read-only view of submitted anketa
   const [editing, setEditing] = useState(false); // re-open the form to edit a pending anketa
   const [regionOpen, setRegionOpen] = useState(false); // custom birthplace picker sheet
+  useHideBottomNav(regionOpen); // hide the tab bar while the region sheet is open
   const [showErrors, setShowErrors] = useState(false);  // reveal per-field errors after a submit attempt
   const errorRef = useRef<HTMLDivElement>(null);
 
