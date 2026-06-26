@@ -85,5 +85,8 @@ TELEGRAM_ADMIN_GROUP_ID = os.environ.get("TELEGRAM_ADMIN_GROUP_ID", "")
 # build deep links (?startapp=…) in admin-group notifications. Without it, the
 # group still gets notified but without the "open chat" button.
 MINIAPP_URL = os.environ.get("MINIAPP_URL", "")
+# Shared secret the bot sends (X-Bot-Secret) to the server-to-server user-register
+# endpoint. Empty ⇒ the endpoint is disabled (rejects everything).
+BOT_INTERNAL_SECRET = os.environ.get("BOT_INTERNAL_SECRET", "")
 ADMIN_CACHE_TTL_SECONDS = int(os.environ.get("ADMIN_CACHE_TTL_SECONDS", "300"))
 INIT_DATA_MAX_AGE_SECONDS = int(os.environ.get("INIT_DATA_MAX_AGE_SECONDS", str(24 * 3600)))
