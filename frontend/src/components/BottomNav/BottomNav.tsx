@@ -9,7 +9,7 @@ import s from './BottomNav.module.css';
 // owns the bottom — a carved-out tab bar fights the Telegram webview viewport),
 // so /chat is reached via the Suhbat tab but shows no bar itself; the back
 // button returns. Detail / thread views are likewise barless.
-const TAB_ROUTES = new Set(['/', '/anketa']);
+const TAB_ROUTES = new Set(['/', '/anketa', '/admin', '/admin/chat']);
 
 type IconProps = { active: boolean };
 
@@ -67,7 +67,9 @@ export const BottomNav: FC = () => {
   ];
 
   const activeKey =
-    path === '/' ? 'home' : path === '/anketa' ? 'anketa' : path === '/chat' ? 'chat' : '';
+    path === '/' ? 'home' :
+    path === '/anketa' || path === '/admin' ? 'anketa' :
+    path === '/chat' || path === '/admin/chat' ? 'chat' : '';
 
   return (
     <nav className={s.nav} aria-label="Asosiy navigatsiya">

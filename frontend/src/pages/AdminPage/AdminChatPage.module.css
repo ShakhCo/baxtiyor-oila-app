@@ -24,7 +24,7 @@
     var(--tg-viewport-content-safe-area-inset-top, 0px) + 20px
   );
   padding-right: calc(var(--tg-viewport-content-safe-area-inset-right, 0px) + 18px);
-  padding-bottom: calc(var(--tg-viewport-safe-area-inset-bottom, 0px) + 32px);
+  padding-bottom: calc(var(--bottom-nav-h) + 24px);
   padding-left: calc(var(--tg-viewport-content-safe-area-inset-left, 0px) + 18px);
 }
 
@@ -46,8 +46,8 @@
 }
 
 .fadeBottom {
-  bottom: 0;
-  height: calc(var(--tg-viewport-safe-area-inset-bottom, 0px) + 70px);
+  bottom: var(--bottom-nav-h);
+  height: 56px;
   background: linear-gradient(to top, var(--bg) 40%, rgba(255, 255, 255, 0));
 }
 
@@ -450,7 +450,7 @@
 .scrollBtn {
   position: fixed;
   right: calc(var(--tg-viewport-content-safe-area-inset-right, 0px) + 16px);
-  bottom: calc(var(--tg-viewport-safe-area-inset-bottom, 0px) + 22px);
+  bottom: calc(var(--bottom-nav-h) + 14px);
   z-index: 20;
   width: 46px;
   height: 46px;
