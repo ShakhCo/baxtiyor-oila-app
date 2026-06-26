@@ -11,6 +11,7 @@ from accounts.permissions import IsAdmin
 from chat.broadcast import recipient_queryset, start_broadcast
 from chat.models import Broadcast, Conversation, Label, Message
 from chat.views import MAX_LEN, _messages_after, serialize_message
+from profiles.photo_views import _to_avif
 
 
 def serialize_broadcast(b: Broadcast) -> dict:
@@ -88,7 +89,7 @@ def list_conversations(request):
             "telegram_id":  u.telegram_id,
             "name":         _display_name(u),
             "username":     u.username,
-            "last_message": last.text if last else "",
+            "last_message": (last.text or ("📷 Rasm" if last.image else "")) if last else "",
             "last_sender":  last.sender if last else None,
             "last_failed":  bool(last and last.sender == Message.ADMIN and last.delivery_failed),
             "updated_at":   when.isoformat() if when else None,
@@ -193,13 +194,21 @@ def admin_chat(request, telegram_id: int):
 
     if request.method == "POST":
         text = (request.data.get("text") or "").strip()
-        if not text:
+        upload = request.FILES.get("image")
+        if not text and upload is None:
             return Response({"detail": "Empty message."}, status=http_status.HTTP_400_BAD_REQUEST)
+        image = None
+        if upload is not None:
+            try:
+                image = _to_avif(upload)
+            except Exception:
+                return Response({"detail": "Rasmni o‘qib bo‘lmadi."}, status=http_status.HTTP_400_BAD_REQUEST)
         msg = Message.objects.create(
             conversation=conv,
             sender=Message.ADMIN,
             author=request.user,
             text=text[:MAX_LEN],
+            image=image,
         )
         conv.touch()
         return Response(serialize_message(msg, conv), status=http_status.HTTP_201_CREATED)

@@ -91,7 +91,7 @@ export const AdminChatThreadPage: FC = () => {
       }));
       const updated: ListItem = {
         ...(found ?? { telegram_id: id, name, username, labels, unread: 0 }),
-        last_message: msg.text,
+        last_message: msg.text || (msg.image ? '📷 Rasm' : ''),
         last_sender: 'admin',
         last_failed: false,
         updated_at: msg.created_at,

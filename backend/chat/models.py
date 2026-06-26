@@ -89,6 +89,10 @@ class BroadcastRecipient(models.Model):
         return f"{self.status}: {self.name or self.telegram_id}"
 
 
+def chat_image_upload_to(instance, filename):
+    return f"chat/{instance.conversation_id}/{filename}"
+
+
 class Message(models.Model):
     USER = "user"
     ADMIN = "admin"
@@ -100,6 +104,8 @@ class Message(models.Model):
         related_name="messages",
     )
     sender = models.CharField(max_length=8, choices=SENDER_CHOICES)
+    # Optional photo attachment (stored as AVIF). A message is text, image, or both.
+    image = models.ImageField(upload_to=chat_image_upload_to, blank=True, null=True)
     # Who actually sent it (which admin, or the user). Kept for audit.
     author = models.ForeignKey(
         "accounts.User",

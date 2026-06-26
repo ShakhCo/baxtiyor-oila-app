@@ -7,6 +7,7 @@ from rest_framework.response import Response
 
 from chat.models import Conversation, Message
 from chat.notifications import notify_admin_group_new_message
+from profiles.photo_views import _to_avif
 
 MAX_LEN = 4000
 
@@ -26,6 +27,7 @@ def serialize_message(m: Message, conv: "Conversation | None" = None) -> dict:
         "id": m.id,
         "sender": m.sender,
         "text": m.text,
+        "image": m.image.url if m.image else None,
         "created_at": m.created_at.isoformat(),
         "delivery_failed": m.delivery_failed,
         "read": read,
@@ -50,8 +52,15 @@ def my_chat(request):
 
     if request.method == "POST":
         text = (request.data.get("text") or "").strip()
-        if not text:
+        upload = request.FILES.get("image")
+        if not text and upload is None:
             return Response({"detail": "Xabar bo‘sh."}, status=http_status.HTTP_400_BAD_REQUEST)
+        image = None
+        if upload is not None:
+            try:
+                image = _to_avif(upload)
+            except Exception:
+                return Response({"detail": "Rasmni o‘qib bo‘lmadi."}, status=http_status.HTTP_400_BAD_REQUEST)
         # Only ping the admin group when the user hasn't messaged in the last 12h,
         # so a burst of messages raises a single alert rather than one per message.
         window_start = timezone.now() - timedelta(hours=12)
@@ -63,10 +72,11 @@ def my_chat(request):
             sender=Message.USER,
             author=request.user,
             text=text[:MAX_LEN],
+            image=image,
         )
         conv.touch()
         if not recently_messaged:
-            notify_admin_group_new_message(request.user, msg.text)
+            notify_admin_group_new_message(request.user, msg.text or "📷 Rasm")
         return Response(serialize_message(msg, conv), status=http_status.HTTP_201_CREATED)
 
     messages = _messages_after(conv, request.query_params.get("after"))

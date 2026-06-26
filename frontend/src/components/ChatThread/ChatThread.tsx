@@ -1,7 +1,7 @@
-import { useEffect, useRef, useState, type FC } from 'react';
+import { useEffect, useRef, useState, type ChangeEvent, type FC } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
-import { apiGet, apiPost } from '@/api/client';
+import { apiGet, apiPost, apiUpload } from '@/api/client';
 
 import s from './ChatThread.module.css';
 
@@ -16,6 +16,8 @@ export type ChatMessage = {
   id: number;
   sender: 'user' | 'admin';
   text: string;
+  /** Relative URL of an attached photo (AVIF), if any. */
+  image?: string | null;
   created_at: string;
   delivery_failed?: boolean;
   /** True once the other party has read this message (drives the ✓✓ receipt). */
@@ -61,6 +63,17 @@ function ArrowUp() {
   );
 }
 
+function ImageIcon() {
+  return (
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden>
+      <rect x="3.5" y="5" width="17" height="14" rx="3" stroke="currentColor" strokeWidth="1.7" />
+      <circle cx="8.5" cy="10" r="1.6" fill="currentColor" />
+      <path d="M5 17.5 L10 12.5 L13 15.5 L16 12 L19.5 16" stroke="currentColor"
+        strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
 /** Read receipt: one tick = sent, two ticks = read by the other party. */
 function Ticks({ read }: { read: boolean }) {
   return (
@@ -79,7 +92,9 @@ export const ChatThread: FC<Props> = ({ basePath, mySide, emptyHint, onMeta, onS
   const queryClient = useQueryClient();
   const queryKey = ['chat', basePath] as const;
   const [text, setText] = useState('');
+  const [lightbox, setLightbox] = useState<string | null>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
+  const fileRef = useRef<HTMLInputElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const inputBarRef = useRef<HTMLDivElement>(null);
@@ -128,29 +143,51 @@ export const ChatThread: FC<Props> = ({ basePath, mySide, emptyHint, onMeta, onS
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages.length]);
 
-  // send appends the new message straight into the cache so it shows instantly,
+  // append a just-sent message straight into the cache so it shows instantly,
   // without waiting for the next poll
+  function pushMessage(msg: ChatMessage) {
+    queryClient.setQueryData<ChatPayload>(queryKey, (prev) => {
+      const list = prev?.messages ?? [];
+      if (list.some(m => m.id === msg.id)) return prev;
+      return { ...(prev ?? {}), messages: [...list, msg] };
+    });
+    onSentRef.current?.(msg); // let the parent refresh the inbox preview
+    requestAnimationFrame(() => bottomRef.current?.scrollIntoView({ behavior: 'smooth' }));
+  }
+
   const sendMutation = useMutation({
     mutationFn: (body: string) => apiPost<ChatMessage>(basePath, { text: body }),
     onSuccess: (msg) => {
-      queryClient.setQueryData<ChatPayload>(queryKey, (prev) => {
-        const list = prev?.messages ?? [];
-        if (list.some(m => m.id === msg.id)) return prev;
-        return { ...(prev ?? {}), messages: [...list, msg] };
-      });
-      onSentRef.current?.(msg); // let the parent refresh the inbox preview
+      pushMessage(msg);
       setText('');
       inputRef.current?.focus(); // keep typing — don't drop the keyboard
-      requestAnimationFrame(() => bottomRef.current?.scrollIntoView({ behavior: 'smooth' }));
     },
     // on error keep the text so the user can retry
   });
   const sending = sendMutation.isPending;
 
+  // photo upload — convert/store happens server-side (AVIF); the returned
+  // message carries the image URL, which we drop into the thread immediately
+  const uploadMutation = useMutation({
+    mutationFn: (file: File) => {
+      const form = new FormData();
+      form.append('image', file);
+      return apiUpload<ChatMessage>(basePath, form);
+    },
+    onSuccess: (msg) => pushMessage(msg),
+  });
+  const uploading = uploadMutation.isPending;
+
   function send() {
     const body = text.trim();
     if (!body || sending) return;
     sendMutation.mutate(body);
+  }
+
+  function onPickPhoto(e: ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    e.target.value = ''; // allow re-picking the same file
+    if (file && !uploading) uploadMutation.mutate(file);
   }
 
   return (
@@ -168,8 +205,17 @@ export const ChatThread: FC<Props> = ({ basePath, mySide, emptyHint, onMeta, onS
           const failed = m.delivery_failed && m.sender === mySide;
           return (
             <div key={m.id} className={`${s.row} ${m.sender === mySide ? s.mine : s.theirs}`}>
-              <div className={s.bubble}>
-                <span className={s.text}>{m.text}</span>
+              <div className={m.image ? `${s.bubble} ${s.hasImage}` : s.bubble}>
+                {m.image && (
+                  <img
+                    className={s.photo}
+                    src={m.image}
+                    alt=""
+                    loading="lazy"
+                    onClick={() => setLightbox(m.image!)}
+                  />
+                )}
+                {m.text && <span className={s.text}>{m.text}</span>}
                 <span className={s.metaRow}>
                   {failed && <span className={s.failed}>⚠ Yetkazilmadi</span>}
                   <span className={s.time}>{timeLabel(m.created_at)}</span>
@@ -194,6 +240,23 @@ export const ChatThread: FC<Props> = ({ basePath, mySide, emptyHint, onMeta, onS
           </>
         ) : (
           <>
+            <input
+              ref={fileRef}
+              type="file"
+              accept="image/*"
+              onChange={onPickPhoto}
+              hidden
+            />
+            <button
+              type="button"
+              className={s.attach}
+              onPointerDown={e => e.preventDefault()} // keep focus on the textarea
+              onClick={() => fileRef.current?.click()}
+              disabled={uploading}
+              aria-label="Rasm biriktirish"
+            >
+              {uploading ? <span className={s.spinner} aria-hidden /> : <ImageIcon />}
+            </button>
             <textarea
               ref={inputRef}
               className={s.input}
@@ -219,6 +282,12 @@ export const ChatThread: FC<Props> = ({ basePath, mySide, emptyHint, onMeta, onS
           </>
         )}
       </div>
+
+      {lightbox && (
+        <div className={s.lightbox} onClick={() => setLightbox(null)}>
+          <img className={s.lightboxImg} src={lightbox} alt="" />
+        </div>
+      )}
     </div>
   );
 };

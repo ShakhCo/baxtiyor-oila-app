@@ -167,6 +167,47 @@
 }
 .tickRead { opacity: 1; }
 
+/* photo attachment — kept compact in the thread, opens full-size on tap */
+.bubble.hasImage {
+  padding: 4px;
+  gap: 4px;
+}
+
+.photo {
+  display: block;
+  width: 100%;
+  max-width: 240px;
+  max-height: 320px;
+  object-fit: cover;
+  border-radius: 13px;
+  cursor: pointer;
+  background: var(--c-skel-hi);
+}
+
+.hasImage .metaRow { padding: 0 6px 2px; }
+
+/* full-screen image viewer */
+.lightbox {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  background: rgba(0, 0, 0, 0.92);
+  -webkit-backdrop-filter: blur(4px);
+  backdrop-filter: blur(4px);
+  cursor: zoom-out;
+}
+
+.lightboxImg {
+  max-width: 94vw;
+  max-height: 92vh;
+  object-fit: contain;
+  border-radius: 8px;
+}
+
 /* composer — glassy overlay pinned to the bottom; messages scroll behind it */
 .inputBar {
   position: absolute;
@@ -206,6 +247,25 @@
 
 .input::placeholder { color: var(--c-placeholder); }
 .input:focus { outline: none; border-color: var(--c-accent); }
+
+/* photo attach — quiet icon button to the left of the composer */
+.attach {
+  flex: none;
+  width: 40px;
+  height: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  background: transparent;
+  color: var(--c-mute);
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: color 0.15s ease, transform 0.1s ease;
+}
+.attach:hover:not(:disabled) { color: var(--c-accent); }
+.attach:active:not(:disabled) { transform: scale(0.92); }
+.attach:disabled { cursor: default; color: var(--c-accent); }
 
 .send {
   flex: none;
