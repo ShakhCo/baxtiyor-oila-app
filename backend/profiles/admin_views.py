@@ -69,6 +69,7 @@ def get_anketa(_request, telegram_id: int):
 
 
 def _match_summary(p: Profile) -> dict:
+    photos = list(p.user.photos.all())
     return {
         "telegram_id":       p.user_id,
         "full_name":         p.full_name,
@@ -76,6 +77,7 @@ def _match_summary(p: Profile) -> dict:
         "birthplace_region": p.birthplace_region,
         "status":            p.status,
         "tariff":            p.tariff,
+        "photo":             photos[0].image.url if photos else None,
     }
 
 
@@ -97,7 +99,12 @@ def anketa_matches(request, telegram_id: int):
         candidate = get_object_or_404(Profile, user_id=cand_id)
         profile.matches.add(candidate)
 
-    matches = profile.matches.all().order_by("full_name")
+    matches = (
+        profile.matches.all()
+        .select_related("user")
+        .prefetch_related("user__photos")
+        .order_by("full_name")
+    )
     return Response({"matches": [_match_summary(p) for p in matches]})
 
 
@@ -109,7 +116,9 @@ def anketa_suggestions(request, telegram_id: int):
     profile = get_object_or_404(Profile, user_id=telegram_id)
     assigned_ids = set(profile.matches.values_list("user_id", flat=True))
     others = list(
-        Profile.objects.select_related("user").exclude(user_id=telegram_id)
+        Profile.objects.select_related("user")
+        .prefetch_related("user__photos")
+        .exclude(user_id=telegram_id)
     )
     others.sort(key=lambda p: match_score(profile, p), reverse=True)
     return Response({

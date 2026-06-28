@@ -15,7 +15,19 @@ type Suggestion = {
   status: string;
   match_percent: number;
   assigned: boolean;
+  photo: string | null;
 };
+
+function initials(name: string): string {
+  const parts = name.trim().split(/\s+/).filter(Boolean);
+  return (parts[0]?.[0] ?? '?').toUpperCase() + (parts[1]?.[0]?.toUpperCase() ?? '');
+}
+
+const Avatar: FC<{ c: Suggestion }> = ({ c }) => (
+  c.photo
+    ? <img className={s.avatar} src={c.photo} alt="" loading="lazy" />
+    : <span className={`${s.avatar} ${s.avatarFallback}`}>{initials(c.full_name)}</span>
+);
 
 const REGION_LABELS: Record<string, string> = {
   andijon: 'Andijon', buxoro: 'Buxoro', fargona: 'Farg‘ona', jizzax: 'Jizzax',
@@ -54,10 +66,16 @@ export const AssignMatchesPage: FC = () => {
       .finally(() => setBusyId(null));
   }
 
-  const filtered = useMemo(() => {
+  // Pin assigned candidates to the top; both groups keep the API's match order.
+  const { assignedList, rest } = useMemo(() => {
     const q = query.trim().toLowerCase();
-    return q ? items.filter(i => i.full_name.toLowerCase().includes(q)) : items;
+    const base = q ? items.filter(i => i.full_name.toLowerCase().includes(q)) : items;
+    return {
+      assignedList: base.filter(i => i.assigned),
+      rest:         base.filter(i => !i.assigned),
+    };
   }, [items, query]);
+  const empty = assignedList.length === 0 && rest.length === 0;
 
   return (
     <Page back>
@@ -77,42 +95,60 @@ export const AssignMatchesPage: FC = () => {
 
         {loading ? (
           <p className={s.note}>Yuklanmoqda…</p>
-        ) : filtered.length === 0 ? (
+        ) : empty ? (
           <p className={s.note}>Anketa topilmadi</p>
         ) : (
-          <div className={s.list}>
-            {filtered.map(c => (
-              <div className={c.assigned ? `${s.card} ${s.cardOn}` : s.card} key={c.telegram_id}>
-                <button
-                  type="button"
-                  className={s.top}
-                  onClick={() => navigate(`/admin/anketa/${c.telegram_id}`)}
-                >
-                  <span className={s.main}>
-                    <span className={s.name}>{c.full_name}</span>
-                    <span className={s.meta}>
-                      {c.age} yosh · {region(c.birthplace_region)}
-                      {c.gender ? ` · ${GENDER_LABEL[c.gender]}` : ''}
-                    </span>
-                    <span className={`${s.tag} ${s[`tag_${c.status}`]}`}>
-                      {STATUS_LABEL[c.status] ?? c.status}
-                    </span>
-                  </span>
-                  <span className={s.score}>{c.match_percent}%</span>
-                </button>
-                <button
-                  type="button"
-                  className={c.assigned ? `${s.toggle} ${s.toggleOff}` : `${s.toggle} ${s.toggleOn}`}
-                  disabled={busyId === c.telegram_id}
-                  onClick={() => toggle(c)}
-                >
-                  {c.assigned ? 'Olib tashlash' : 'Qo‘shish'}
-                </button>
-              </div>
-            ))}
-          </div>
+          <>
+            {assignedList.length > 0 && (
+              <>
+                <p className={s.groupLabel}>Qo‘shilganlar · {assignedList.length}</p>
+                <div className={s.list}>{assignedList.map(renderCard)}</div>
+              </>
+            )}
+            {rest.length > 0 && (
+              <>
+                {assignedList.length > 0 && (
+                  <p className={s.groupLabel}>Takliflar · moslik bo‘yicha</p>
+                )}
+                <div className={s.list}>{rest.map(renderCard)}</div>
+              </>
+            )}
+          </>
         )}
       </div>
     </Page>
   );
+
+  function renderCard(c: Suggestion) {
+    return (
+      <div className={c.assigned ? `${s.card} ${s.cardOn}` : s.card} key={c.telegram_id}>
+        <button
+          type="button"
+          className={s.top}
+          onClick={() => navigate(`/admin/anketa/${c.telegram_id}`)}
+        >
+          <Avatar c={c} />
+          <span className={s.main}>
+            <span className={s.name}>{c.full_name}</span>
+            <span className={s.meta}>
+              {c.age} yosh · {region(c.birthplace_region)}
+              {c.gender ? ` · ${GENDER_LABEL[c.gender]}` : ''}
+            </span>
+            <span className={`${s.tag} ${s[`tag_${c.status}`]}`}>
+              {STATUS_LABEL[c.status] ?? c.status}
+            </span>
+          </span>
+          <span className={s.score}>{c.match_percent}%</span>
+        </button>
+        <button
+          type="button"
+          className={c.assigned ? `${s.toggle} ${s.toggleOff}` : `${s.toggle} ${s.toggleOn}`}
+          disabled={busyId === c.telegram_id}
+          onClick={() => toggle(c)}
+        >
+          {c.assigned ? 'Olib tashlash' : 'Qo‘shish'}
+        </button>
+      </div>
+    );
+  }
 };

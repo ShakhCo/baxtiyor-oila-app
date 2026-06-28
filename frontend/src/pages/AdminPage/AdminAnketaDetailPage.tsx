@@ -3,7 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 
 import { Page } from '@/components/Page.tsx';
 import { Lightbox } from '@/components/Lightbox/Lightbox';
-import { apiGet, apiPost } from '@/api/client';
+import { apiGet, apiPost, invalidate, CACHE_TTL } from '@/api/client';
 
 import { MatchAssigner } from './MatchAssigner';
 import s from './AnketaDetailPage.module.css';
@@ -80,7 +80,7 @@ export const AdminAnketaDetailPage: FC = () => {
   useEffect(() => {
     if (!telegramId) return;
     setLoading(true);
-    apiGet<AnketaDetail>(`/admin/anketas/${telegramId}`)
+    apiGet<AnketaDetail>(`/admin/anketas/${telegramId}`, { ttl: CACHE_TTL.detail })
       .then(setData)
       .catch(err => setError(`Yuklashda xatolik: ${err.message}`))
       .finally(() => setLoading(false));
@@ -96,6 +96,8 @@ export const AdminAnketaDetailPage: FC = () => {
         status: next,
         ...(withReason ? { reason: withReason } : {}),
       });
+      // status change shifts list counts/membership and this anketa's badge
+      invalidate('/admin/anketas');
       setRejectOpen(false);
       navigate('/admin');
     } catch (err) {

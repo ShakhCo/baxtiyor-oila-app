@@ -2,7 +2,7 @@ import { useEffect, useState, type FC } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 import { Page } from '@/components/Page.tsx';
-import { apiGet } from '@/api/client';
+import { apiGet, CACHE_TTL } from '@/api/client';
 
 import s from './AnketaListPage.module.css';
 
@@ -68,7 +68,7 @@ export const AdminPage: FC = () => {
   const [me, setMe] = useState<MeResponse | null>(null);
   const [items, setItems] = useState<AnketaSummary[]>([]);
   const [counts, setCounts] = useState<Record<FilterKey, number>>({ pending: 0, approved: 0, rejected: 0, all: 0 });
-  const [filter, setFilter] = useState<FilterKey>('pending');
+  const [filter, setFilter] = useState<FilterKey>('all');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -81,7 +81,7 @@ export const AdminPage: FC = () => {
   useEffect(() => {
     if (!me?.is_admin) return;
     setLoading(true);
-    apiGet<ListResponse>(`/admin/anketas?status=${filter}`)
+    apiGet<ListResponse>(`/admin/anketas?status=${filter}`, { ttl: CACHE_TTL.list })
       .then(data => {
         setItems(data.items);
         setCounts(data.counts);
@@ -126,7 +126,7 @@ export const AdminPage: FC = () => {
         </header>
 
         <div className={s.tabs}>
-          {(['pending', 'approved', 'rejected', 'all'] as FilterKey[]).map(key => (
+          {(['all', 'approved', 'pending', 'rejected'] as FilterKey[]).map(key => (
             <button
               key={key}
               type="button"

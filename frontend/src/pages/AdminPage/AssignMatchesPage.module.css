@@ -100,6 +100,35 @@
   -webkit-tap-highlight-color: transparent;
 }
 
+/* group heading above the assigned / suggestions lists */
+.groupLabel {
+  margin: 18px 0 9px;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  color: rgba(34, 27, 19, 0.5);
+}
+.groupLabel:first-child { margin-top: 4px; }
+
+/* candidate photo (or initials fallback) on the left of each card */
+.avatar {
+  flex: none;
+  width: 48px;
+  height: 48px;
+  border-radius: 13px;
+  object-fit: cover;
+  background: #ece9e3;
+}
+.avatarFallback {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  font-weight: 700;
+  color: rgba(34, 27, 19, 0.45);
+  border: 1px solid rgba(40, 30, 16, 0.08);
+}
+
 .main { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 4px; }
 .name { font-size: 17px; font-weight: 700; color: #1a1712; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .meta { font-size: 13.5px; color: rgba(34, 27, 19, 0.55); }

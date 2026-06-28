@@ -59,6 +59,41 @@
   border-radius: 13px;
 }
 
+.rowOpen {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  appearance: none;
+  border: none;
+  background: none;
+  padding: 0;
+  text-align: left;
+  font-family: inherit;
+  color: inherit;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.avatar {
+  flex: none;
+  width: 42px;
+  height: 42px;
+  border-radius: 11px;
+  object-fit: cover;
+  background: #ece9e3;
+}
+.avatarFallback {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 15px;
+  font-weight: 700;
+  color: rgba(34, 27, 19, 0.45);
+  border: 1px solid rgba(40, 30, 16, 0.08);
+}
+
 .rowMain { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
 .rowName { font-size: 15px; font-weight: 700; color: #1a1712; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .rowMeta { font-size: 13px; color: rgba(34, 27, 19, 0.55); }

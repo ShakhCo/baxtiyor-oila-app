@@ -12,7 +12,13 @@ type Summary = {
   birthplace_region: string;
   status: string;
   tariff: string;
+  photo: string | null;
 };
+
+function initials(name: string): string {
+  const parts = name.trim().split(/\s+/).filter(Boolean);
+  return (parts[0]?.[0] ?? '?').toUpperCase() + (parts[1]?.[0]?.toUpperCase() ?? '');
+}
 
 const REGION_LABELS: Record<string, string> = {
   andijon: 'Andijon', buxoro: 'Buxoro', fargona: 'Farg‘ona', jizzax: 'Jizzax',
@@ -61,10 +67,19 @@ export const MatchAssigner: FC<{ telegramId: string }> = ({ telegramId }) => {
         <div className={s.list}>
           {assigned.map(c => (
             <div className={s.row} key={c.telegram_id}>
-              <div className={s.rowMain}>
-                <span className={s.rowName}>{c.full_name}</span>
-                <span className={s.rowMeta}>{c.age} yosh · {region(c.birthplace_region)}</span>
-              </div>
+              <button
+                type="button"
+                className={s.rowOpen}
+                onClick={() => navigate(`/admin/anketa/${c.telegram_id}`)}
+              >
+                {c.photo
+                  ? <img className={s.avatar} src={c.photo} alt="" loading="lazy" />
+                  : <span className={`${s.avatar} ${s.avatarFallback}`}>{initials(c.full_name)}</span>}
+                <span className={s.rowMain}>
+                  <span className={s.rowName}>{c.full_name}</span>
+                  <span className={s.rowMeta}>{c.age} yosh · {region(c.birthplace_region)}</span>
+                </span>
+              </button>
               <button type="button" className={s.remove} onClick={() => remove(c.telegram_id)} aria-label="O‘chirish">×</button>
             </div>
           ))}

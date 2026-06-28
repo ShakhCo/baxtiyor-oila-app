@@ -39,8 +39,43 @@ async function request<T>(path: string, init: RequestInit): Promise<T> {
   return json as T;
 }
 
-export function apiGet<T>(path: string): Promise<T> {
-  return request<T>(path, { method: 'GET' });
+/** Cache TTLs (ms) for GET requests that opt in via apiGet(path, { ttl }). */
+export const CACHE_TTL = {
+  list:   3 * 60_000,   // anketa list
+  detail: 10 * 60_000,  // anketa details
+} as const;
+
+type CacheEntry = { ts: number; data: unknown };
+const cache = new Map<string, CacheEntry>();
+const inflight = new Map<string, Promise<unknown>>();
+
+/**
+ * GET with an optional in-memory TTL cache. A fresh cached value is returned
+ * immediately; concurrent calls for the same path share one request. Mutations
+ * should call `invalidate()` to drop stale entries.
+ */
+export function apiGet<T>(path: string, opts?: { ttl?: number }): Promise<T> {
+  const ttl = opts?.ttl ?? 0;
+  if (ttl <= 0) return request<T>(path, { method: 'GET' });
+
+  const hit = cache.get(path);
+  if (hit && Date.now() - hit.ts < ttl) return Promise.resolve(hit.data as T);
+
+  const pending = inflight.get(path);
+  if (pending) return pending as Promise<T>;
+
+  const p = request<T>(path, { method: 'GET' })
+    .then(data => { cache.set(path, { ts: Date.now(), data }); return data; })
+    .finally(() => inflight.delete(path));
+  inflight.set(path, p as Promise<unknown>);
+  return p;
+}
+
+/** Drop every cached GET whose path starts with `prefix`. */
+export function invalidate(prefix: string): void {
+  for (const key of cache.keys()) {
+    if (key.startsWith(prefix)) cache.delete(key);
+  }
 }
 
 export function apiPost<T>(path: string, body: unknown): Promise<T> {
