@@ -71,6 +71,12 @@ export function apiGet<T>(path: string, opts?: { ttl?: number }): Promise<T> {
   return p;
 }
 
+/** Synchronously read a still-fresh cached GET (same store as apiGet), or undefined. */
+export function peekCache<T>(path: string, ttl: number): T | undefined {
+  const hit = cache.get(path);
+  return hit && Date.now() - hit.ts < ttl ? (hit.data as T) : undefined;
+}
+
 /** Drop every cached GET whose path starts with `prefix`. */
 export function invalidate(prefix: string): void {
   for (const key of cache.keys()) {

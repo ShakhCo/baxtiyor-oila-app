@@ -2,7 +2,7 @@ import { useEffect, useState, type FC } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 import { Page } from '@/components/Page.tsx';
-import { apiGet, CACHE_TTL } from '@/api/client';
+import { apiGet, peekCache, CACHE_TTL } from '@/api/client';
 
 import s from './AnketaListPage.module.css';
 
@@ -63,24 +63,42 @@ function formatDate(iso: string): string {
   return d.getFullYear() === new Date().getFullYear() ? base : `${base}, ${d.getFullYear()}`;
 }
 
+// Survive remounts: react-router unmounts this page when you open an anketa, so
+// local state is otherwise lost on "back". Caching the admin check avoids the
+// "Tekshirilmoqda…" flash, and remembering the filter keeps the chosen tab.
+let cachedMe: MeResponse | null = null;
+let lastFilter: FilterKey = 'all';
+
 export const AdminPage: FC = () => {
   const navigate = useNavigate();
-  const [me, setMe] = useState<MeResponse | null>(null);
-  const [items, setItems] = useState<AnketaSummary[]>([]);
-  const [counts, setCounts] = useState<Record<FilterKey, number>>({ pending: 0, approved: 0, rejected: 0, all: 0 });
-  const [filter, setFilter] = useState<FilterKey>('all');
-  const [loading, setLoading] = useState(true);
+  const initialList = peekCache<ListResponse>(`/admin/anketas?status=${lastFilter}`, CACHE_TTL.list);
+  const [me, setMe] = useState<MeResponse | null>(cachedMe);
+  const [items, setItems] = useState<AnketaSummary[]>(initialList?.items ?? []);
+  const [counts, setCounts] = useState<Record<FilterKey, number>>(
+    initialList?.counts ?? { pending: 0, approved: 0, rejected: 0, all: 0 });
+  const [filter, setFilterState] = useState<FilterKey>(lastFilter);
+  const [loading, setLoading] = useState(!initialList);
   const [error, setError] = useState<string | null>(null);
 
+  const setFilter = (key: FilterKey) => { lastFilter = key; setFilterState(key); };
+
   useEffect(() => {
+    if (cachedMe) return;
     apiGet<MeResponse>('/me')
-      .then(setMe)
+      .then(data => { cachedMe = data; setMe(data); })
       .catch(err => setError(`Auth error: ${err.message}`));
   }, []);
 
   useEffect(() => {
     if (!me?.is_admin) return;
-    setLoading(true);
+    const cached = peekCache<ListResponse>(`/admin/anketas?status=${filter}`, CACHE_TTL.list);
+    if (cached) {
+      setItems(cached.items);
+      setCounts(cached.counts);
+      setLoading(false);
+    } else {
+      setLoading(true);
+    }
     apiGet<ListResponse>(`/admin/anketas?status=${filter}`, { ttl: CACHE_TTL.list })
       .then(data => {
         setItems(data.items);
